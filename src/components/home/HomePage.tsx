@@ -21,10 +21,14 @@ import {
   Award,
   Wallet,
   Compass,
-  Check
+  Check,
+  LogIn,
+  UserPlus,
+  LayoutDashboard,
+  UserCheck
 } from 'lucide-react';
-import { User, UserRole } from '../../types';
-import { loginUser, getRoleDashboardPath } from '../../services/auth';
+import { User } from '../../types';
+import { getRoleDashboardPath, getRoleDisplayName } from '../../services/auth';
 
 interface HomePageProps {
   onNavigate: (path: string) => void;
@@ -56,16 +60,6 @@ export const HomePage: React.FC<HomePageProps> = ({
     }, 4000);
   };
 
-  const handleTestRole = (role: UserRole) => {
-    let email = 'priya@citizen.reloop.eco';
-    if (role === 'collector') email = 'rajesh@collector.reloop.eco';
-    if (role === 'recycler') email = 'contact@greentech.eco';
-    if (role === 'brand_cpcb') email = 'compliance@ecocorp.com';
-
-    loginUser(email, role);
-    onNavigate(getRoleDashboardPath(role));
-  };
-
   return (
     <div className="space-y-20 pb-20">
       {/* Hero Section */}
@@ -90,67 +84,109 @@ export const HomePage: React.FC<HomePageProps> = ({
             ReLoop connects citizens, informal collectors, aggregators, recyclers, and brands into an offline-first verifiable digital ledger. No fake numbers. No unverified credits.
           </p>
 
-          {/* CTAs */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <button
-              onClick={() => onNavigate(currentUser ? getRoleDashboardPath(currentUser.role) : '/register')}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
-            >
-              <span>Explore Dashboard</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+          {/* Context-aware CTAs for Single Authenticated User */}
+          <div className="mt-8 flex flex-wrap justify-center items-center gap-3 sm:gap-4">
+            {currentUser ? (
+              <>
+                <button
+                  id="hero-btn-my-dashboard"
+                  onClick={() => onNavigate(getRoleDashboardPath(currentUser.role))}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Go to My Dashboard ({getRoleDisplayName(currentUser.role)})</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
 
-            <button
-              onClick={onOpenWhatsApp}
-              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all cursor-pointer"
-            >
-              <Smartphone className="w-4 h-4 text-emerald-400" />
-              <span>Try WhatsApp Bot</span>
-            </button>
+                <button
+                  onClick={onOpenWhatsApp}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all cursor-pointer"
+                >
+                  <Smartphone className="w-4 h-4 text-emerald-400" />
+                  <span>WhatsApp Bot</span>
+                </button>
 
-            <button
-              onClick={onOpenInteractiveFace}
-              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-indigo-900/60 hover:bg-indigo-900 text-indigo-200 font-bold text-sm border border-indigo-700/60 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              <span>Chat with Eco Avatar</span>
-            </button>
+                <button
+                  onClick={onOpenInteractiveFace}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-indigo-900/60 hover:bg-indigo-900 text-indigo-200 font-bold text-sm border border-indigo-700/60 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                  <span>Eco Avatar</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  id="hero-btn-login"
+                  onClick={() => onNavigate('/login')}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In to Your Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  id="hero-btn-register"
+                  onClick={() => onNavigate('/register')}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4 text-emerald-400" />
+                  <span>Register Account</span>
+                </button>
+
+                <button
+                  onClick={onOpenWhatsApp}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all cursor-pointer"
+                >
+                  <Smartphone className="w-4 h-4 text-emerald-400" />
+                  <span>WhatsApp Bot</span>
+                </button>
+
+                <button
+                  onClick={onOpenInteractiveFace}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-indigo-900/60 hover:bg-indigo-900 text-indigo-200 font-bold text-sm border border-indigo-700/60 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                  <span>Eco Avatar</span>
+                </button>
+              </>
+            )}
           </div>
 
-          {/* Quick Role Tester Strip */}
+          {/* Active single session indicator banner */}
+          {currentUser && (
+            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>
+                Active Session: <strong className="text-white">{currentUser.name}</strong> ({getRoleDisplayName(currentUser.role)})
+              </span>
+            </div>
+          )}
+
+          {/* Ecosystem Architecture Strip */}
           <div className="mt-12 pt-8 border-t border-slate-800/80 max-w-3xl mx-auto">
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-              Instant 1-Click Role Sandbox:
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Multi-Stakeholder EPR Ecosystem (Role-Isolated Access)</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <button
-                onClick={() => handleTestRole('user')}
-                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left cursor-pointer transition-colors"
-              >
+              <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-left">
                 <div className="text-emerald-400 font-bold">1. Citizen / User</div>
-                <div className="text-[10px] text-slate-400 truncate">Book pickup & trace</div>
-              </button>
-              <button
-                onClick={() => handleTestRole('collector')}
-                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left cursor-pointer transition-colors"
-              >
+                <div className="text-[10px] text-slate-400">Book pickup & trace</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-left">
                 <div className="text-amber-400 font-bold">2. Informal Collector</div>
-                <div className="text-[10px] text-slate-400 truncate">Offline SQLite & Smart Route</div>
-              </button>
-              <button
-                onClick={() => handleTestRole('recycler')}
-                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left cursor-pointer transition-colors"
-              >
+                <div className="text-[10px] text-slate-400">Offline SQLite & Smart Route</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-left">
                 <div className="text-blue-400 font-bold">3. Recycler / Refurb</div>
-                <div className="text-[10px] text-slate-400 truncate">Verify weight & circularity</div>
-              </button>
-              <button
-                onClick={() => handleTestRole('brand_cpcb')}
-                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left cursor-pointer transition-colors"
-              >
+                <div className="text-[10px] text-slate-400">Verify weight & circularity</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-left">
                 <div className="text-purple-400 font-bold">4. Brand / CPCB</div>
-                <div className="text-[10px] text-slate-400 truncate">EPR audit & event ledger</div>
-              </button>
+                <div className="text-[10px] text-slate-400">EPR audit & event ledger</div>
+              </div>
             </div>
           </div>
         </div>

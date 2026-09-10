@@ -1,7 +1,7 @@
 import React from 'react';
-import { ShieldAlert, ArrowLeft, RefreshCw, KeyRound } from 'lucide-react';
+import { ShieldAlert, ArrowLeft, LogOut, KeyRound } from 'lucide-react';
 import { User, UserRole } from '../../types';
-import { checkRoleAccess, getRoleDisplayName, getRoleDashboardPath, loginUser } from '../../services/auth';
+import { checkRoleAccess, getRoleDisplayName, getRoleDashboardPath, logoutUser } from '../../services/auth';
 
 interface RBACGuardProps {
   currentUser: User | null;
@@ -32,13 +32,13 @@ export const RBACGuard: React.FC<RBACGuardProps> = ({
           <div className="mt-6 flex flex-col gap-2">
             <button
               onClick={() => onNavigate('/login')}
-              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm"
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm cursor-pointer"
             >
               Go to Login
             </button>
             <button
               onClick={() => onNavigate('/')}
-              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors text-sm"
+              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors text-sm cursor-pointer"
             >
               Back to Home
             </button>
@@ -55,16 +55,9 @@ export const RBACGuard: React.FC<RBACGuardProps> = ({
       ? requiredRole.map(getRoleDisplayName).join(' or ')
       : getRoleDisplayName(requiredRole);
 
-    const targetRole = Array.isArray(requiredRole) ? requiredRole[0] : requiredRole;
-
-    const handleQuickSwitchToRequiredRole = () => {
-      let email = 'priya@citizen.reloop.eco';
-      if (targetRole === 'collector') email = 'rajesh@collector.reloop.eco';
-      if (targetRole === 'recycler') email = 'contact@greentech.eco';
-      if (targetRole === 'brand_cpcb') email = 'compliance@ecocorp.com';
-
-      loginUser(email, targetRole);
-      onNavigate(getRoleDashboardPath(targetRole));
+    const handleLogoutToSwitch = () => {
+      logoutUser();
+      onNavigate('/login');
     };
 
     return (
@@ -75,51 +68,59 @@ export const RBACGuard: React.FC<RBACGuardProps> = ({
           </div>
 
           <div className="inline-block px-3 py-1 bg-rose-50 text-rose-700 text-xs font-bold rounded-full border border-rose-200 uppercase tracking-wider mb-2">
-            RBAC Middleware Protection Active
+            Single-User Access Control Active
           </div>
 
           <h2 className="text-2xl font-bold text-slate-900 font-display">
-            Access Restricted
+            Role Permission Required
           </h2>
 
           <p className="mt-2 text-sm text-slate-600">
-            This sensitive view requires <strong className="text-slate-900">{requiredRoleDisplay}</strong> privileges.
+            This dashboard is restricted to authorized <strong className="text-slate-900">{requiredRoleDisplay}</strong> accounts.
           </p>
 
-          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left text-xs space-y-1.5 text-slate-700">
-            <div>
-              <span className="text-slate-500">Current User:</span>{' '}
-              <strong className="text-slate-900">{currentUser.name}</strong> ({currentUser.email})
+          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left text-xs space-y-2 text-slate-700">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Currently Logged In:</span>
+              <span className="font-bold text-slate-900">{currentUser.name}</span>
             </div>
-            <div>
-              <span className="text-slate-500">Current Role:</span>{' '}
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Email:</span>
+              <span className="font-mono text-slate-700">{currentUser.email}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Your Active Role:</span>
               <span className="px-2 py-0.5 bg-slate-200 text-slate-800 rounded font-semibold">
                 {getRoleDisplayName(currentUser.role)}
               </span>
             </div>
-            <div>
-              <span className="text-slate-500">Required Role:</span>{' '}
+            <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+              <span className="text-slate-500">Required Role:</span>
               <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-semibold">
                 {requiredRoleDisplay}
               </span>
             </div>
           </div>
 
+          <p className="mt-3 text-xs text-slate-500">
+            Only one user is authenticated at a time. To access this dashboard, please log out and sign in with an account having {requiredRoleDisplay} credentials.
+          </p>
+
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => onNavigate(getRoleDashboardPath(currentUser.role))}
-              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs"
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Return to My Dashboard
             </button>
 
             <button
-              onClick={handleQuickSwitchToRequiredRole}
-              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-xs shadow-sm"
+              onClick={handleLogoutToSwitch}
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg text-xs shadow-sm cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Switch to {getRoleDisplayName(targetRole)}
+              <LogOut className="w-3.5 h-3.5" />
+              Log Out & Switch User
             </button>
           </div>
         </div>
