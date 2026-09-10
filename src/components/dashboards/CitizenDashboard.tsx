@@ -273,7 +273,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                   </div>
                 </div>
 
-                {/* The "Where Did My E-Waste Go?" Stepper (PDF Page 11 & 16) */}
+                {/* The "Where Did My E-Waste Go?" Stepper */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
@@ -331,7 +331,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
         })}
       </div>
 
-      {/* Impact Receipt Modal (PDF Page 12) */}
+      {/* Impact Receipt Modal */}
       {selectedReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-5 animate-in fade-in zoom-in-95">
@@ -428,7 +428,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                 className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-xs font-semibold text-white shadow-xs"
               >
                 <Download className="w-3.5 h-3.5" />
-                Print / Save PDF
+                Print / Save Receipt
               </button>
             </div>
           </div>

@@ -69,7 +69,7 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
         </div>
       </div>
 
-      {/* EPR Obligation Progress Cards (PDF Page 14) */}
+      {/* EPR Obligation Progress Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -131,7 +131,7 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
           />
         </div>
 
-        {/* Category Breakdown (PDF Page 14) */}
+        {/* Category Breakdown */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
           {stats.categoryBreakdown.map((cat, idx) => (
             <div key={idx} className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
@@ -144,13 +144,13 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
         </div>
       </div>
 
-      {/* Risk and Anomaly Detection Center (PDF Page 12 & 13) */}
+      {/* Risk and Anomaly Detection Center */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" />
-              Automated Rule-Based Risk & Anomaly Detection (PDF Page 12-13)
+              Automated Rule-Based Risk & Anomaly Detection
             </span>
             <h2 className="text-xl font-bold text-slate-900 font-display">
               Audit Flags & Discrepancy Queue
@@ -230,13 +230,13 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
         </div>
       </div>
 
-      {/* Immutable Event Ledger Stream (PDF Pages 20–21) */}
+      {/* Immutable Event Ledger Stream */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-purple-700 flex items-center gap-1">
               <ShieldCheck className="w-4 h-4" />
-              Event Ledger (The Heart of ReLoop - PDF Page 20-21)
+              Event Ledger (The Heart of ReLoop)
             </span>
             <h2 className="text-xl font-bold text-slate-900 font-display">
               Cryptographic Append-Only Audit Trail
@@ -285,7 +285,7 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
         </div>
       </div>
 
-      {/* CPCB-Ready Report Modal (PDF Page 15) */}
+      {/* CPCB-Ready Report Modal */}
       {showReportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 space-y-6 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
@@ -394,7 +394,7 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
               </div>
 
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900">
-                <strong>Audit Disclaimer (PDF Page 15):</strong> This document is labeled as a "Compliance-ready / CPCB-ready report" based on digitally verified chain of custody events. It is designed to be submitted alongside formal CPCB portal filings.
+                <strong>Audit Disclaimer:</strong> This document is labeled as a "Compliance-ready / CPCB-ready report" based on digitally verified chain of custody events. It is designed to be submitted alongside formal CPCB portal filings.
               </div>
             </div>
 
@@ -410,7 +410,7 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
                 className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Print / Download PDF</span>
+                <span>Print / Download Report</span>
               </button>
             </div>
           </div>

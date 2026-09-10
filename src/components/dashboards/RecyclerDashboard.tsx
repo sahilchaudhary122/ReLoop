@@ -31,7 +31,7 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
   const [processingNotes, setProcessingNotes] = useState('');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
-  // AI Circularity Assistant state (PDF Page 15 & 16)
+  // AI Circularity Assistant state
   const [aiItemType, setAiItemType] = useState('Laptop');
   const [aiCondition, setAiCondition] = useState('Good condition, powers on, minor chassis scratch');
   const [aiAgeYears, setAiAgeYears] = useState('3');
@@ -245,7 +245,7 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
             </div>
           </div>
 
-          {/* Recycler Facility Inventory (PDF Page 7) */}
+          {/* Recycler Facility Inventory */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
               Downstream Inventory Breakdown (kg)
@@ -300,7 +300,7 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
                 </div>
               </div>
 
-              {/* Weight Progression Audit Trail (PDF Page 4) */}
+              {/* Weight Progression Audit Trail */}
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
                   Chain of Custody Weight Progression (Audit Trail)
@@ -335,12 +335,12 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
                 </p>
               </div>
 
-              {/* Circularity Pathways Selector (PDF Page 8) */}
+              {/* Circularity Pathways Selector */}
               <div className="pt-2">
                 <div className="mb-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                     <Layers className="w-4 h-4 text-emerald-600" />
-                    Select Final Circularity Pathway (PDF Page 8)
+                    Select Final Circularity Pathway
                   </span>
                   <p className="text-xs text-slate-500">
                     ReLoop enforces circularity: Not all e-waste should be destroyed or shredded.
@@ -410,7 +410,7 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
             </div>
           )}
 
-          {/* AI Circularity Assistant (PDF Page 15 & 16) */}
+          {/* AI Circularity Assistant */}
           <div className="bg-gradient-to-br from-indigo-50/70 via-white to-slate-50 p-6 rounded-2xl border border-indigo-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -419,7 +419,7 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 font-display">
-                    Optional AI — Circularity Assistant (PDF Page 15 & 16)
+                    Circularity Pathway Assistant
                   </h3>
                   <p className="text-[11px] text-slate-500">
                     Analyzes item condition & recommends REUSE / REFURBISH / COMPONENT RECOVERY / RECYCLE.

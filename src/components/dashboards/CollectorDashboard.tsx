@@ -73,7 +73,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
     }
   };
 
-  // Simulate Voice input in Hindi / English (PDF Page 3)
+  // Simulate Voice input in Hindi / English
   const handleVoiceRecord = () => {
     setIsListening(true);
     setVoiceTranscript('Listening... Speak e-waste count (e.g. "Mobile do, Laptop ek")');
@@ -205,9 +205,9 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
         </div>
       </div>
 
-      {/* Trust Score & Wallet Row (PDF Page 9 & 10) */}
+      {/* Trust Score & Wallet Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Collector Trust Score Card (PDF Page 9) */}
+        {/* Collector Trust Score Card */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
@@ -248,7 +248,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
           </p>
         </div>
 
-        {/* Collector Wallet Card (PDF Page 10) */}
+        {/* Collector Wallet Card */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
@@ -297,7 +297,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
         </div>
       </div>
 
-      {/* Main Workflow: Available Pickups & Collection Recorder (PDF Page 2 & 3) */}
+      {/* Main Workflow: Available Pickups & Collection Recorder */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
           <div>
@@ -309,7 +309,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
             </h2>
           </div>
 
-          {/* Voice Input Simulator Button (PDF Page 3) */}
+          {/* Voice Input Simulator Button */}
           <button
             onClick={handleVoiceRecord}
             className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
@@ -393,13 +393,13 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
         </div>
       </div>
 
-      {/* Smart Route Innovation (PDF Page 9) */}
+      {/* Smart Route Innovation */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
-              Smart Route — Main Innovation (PDF Page 9)
+              Smart Route — AI Collection Optimization
             </span>
             <h2 className="text-xl font-bold text-slate-900 font-display">
               Where Should I Take This Collected Material?
@@ -577,7 +577,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
                 </div>
               </div>
 
-              {/* Hazard Reporting (PDF Page 13) */}
+              {/* Hazard Reporting */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />

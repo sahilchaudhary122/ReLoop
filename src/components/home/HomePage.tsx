@@ -156,7 +156,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* Section 1: What is ReLoop? (PDF Page 1) */}
+      {/* Section 1: What is ReLoop? */}
       <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-8">
           <div className="max-w-3xl">
@@ -404,7 +404,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* Section 4 & 5: Interactive Chain of Custody (PDF Pages 3–4) */}
+      {/* Section 4 & 5: Interactive Chain of Custody */}
       <section id="chain-of-custody" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-sm space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -465,7 +465,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* Section 12: Smart Route Innovation (PDF Page 9) */}
+      {/* Section 12: Smart Route Innovation */}
       <section id="innovation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-xl space-y-6">
           <div className="max-w-2xl">
