@@ -16,7 +16,8 @@ import {
   Boxes,
   Award,
   Calendar,
-  FileText
+  FileText,
+  UserCog
 } from 'lucide-react';
 import { User, CollectionBatch, CircularityPathway } from '../../types';
 import {
@@ -25,16 +26,22 @@ import {
   addEvent,
 } from '../../services/mockData';
 import { QRCodeSVG } from '../common/QRCodeSVG';
-import { RoleProfileCard } from '../common/RoleProfileCard';
+import { DashboardTaskHeader } from '../common/DashboardTaskHeader';
 import { DashboardSidebarLayout, NavSectionItem } from '../common/DashboardSidebarLayout';
+import { RecyclerProfileSettings } from './recycler/RecyclerProfileSettings';
 
 interface RecyclerDashboardProps {
   currentUser: User;
 }
 
-type RecyclerTab = 'receiving' | 'assistant' | 'inventory' | 'compliance';
+type RecyclerTab = 'receiving' | 'assistant' | 'inventory' | 'compliance' | 'profile';
 
-export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUser }) => {
+export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUser: initialCurrentUser }) => {
+  const [currentUser, setCurrentUser] = useState<User>(initialCurrentUser);
+  React.useEffect(() => {
+    setCurrentUser(initialCurrentUser);
+  }, [initialCurrentUser]);
+
   const [batches, setBatches] = useState<CollectionBatch[]>(getStoredBatches());
   const [selectedBatch, setSelectedBatch] = useState<CollectionBatch | null>(
     batches.length > 0 ? batches[0] : null
@@ -197,7 +204,81 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
       category: 'analysis',
       description: 'Issued certificates & brand compliance records',
     },
+    {
+      id: 'profile',
+      label: 'Facility Profile',
+      icon: <UserCog className="w-4 h-4" />,
+      category: 'account',
+      description: 'CPCB License, capacity, contact & dock address',
+    },
   ];
+
+  const getTaskHeaderInfo = (): {
+    title: string;
+    description: string;
+    badge?: React.ReactNode;
+    actions?: React.ReactNode;
+  } => {
+    switch (activeTab) {
+      case 'receiving':
+        return {
+          title: 'Batch Receiving & Scale Verification',
+          description: 'Audit incoming collector batches, compare collector vs dock weights, and classify circularity outcome.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              {batches.filter((b) => b.status !== 'processed').length} In Receiving Queue
+            </span>
+          ),
+        };
+      case 'assistant':
+        return {
+          title: 'Circularity AI Decision Engine',
+          description: 'Evaluate optimal recovery destination according to circularity hierarchy: Reuse, Refurbish, Recover, or Recycle.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Zero-Landfill AI
+            </span>
+          ),
+        };
+      case 'inventory':
+        return {
+          title: 'Material Inventory & Scrap Throughput',
+          description: 'Review cumulative stock across shredded circuit boards, copper motors, cathode plastics, and lithium batteries.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              127 kg In Stock
+            </span>
+          ),
+        };
+      case 'compliance':
+        return {
+          title: 'EPR Credit Releases & Regulatory Audit',
+          description: 'Issued digital certificates formally attributed to electronics brands under CPCB E-Waste (Management) Rules.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Form 6 Ready
+            </span>
+          ),
+        };
+      case 'profile':
+        return {
+          title: 'Authorized Facility Profile & Details',
+          description: 'Manage formal dismantling registration, CPCB authorization license, operations contact, and daily capacity.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              CPCB Authorized
+            </span>
+          ),
+        };
+      default:
+        return {
+          title: 'Recycler Dashboard',
+          description: 'Formal dismantling and circular processing management',
+        };
+    }
+  };
+
+  const headerInfo = getTaskHeaderInfo();
 
   return (
     <DashboardSidebarLayout
@@ -208,44 +289,13 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
       accentColor="blue"
     >
       <div className="space-y-6">
-        {/* 1. Basic Details of the Role Person (Role Profile Card) */}
-        <RoleProfileCard
+        {/* Dynamic Task & Data Header (Replacing bulky static profile card) */}
+        <DashboardTaskHeader
           user={currentUser}
-          subtitle="Authorized formal processing facility enforcing circularity hierarchy: Reuse, Refurbish, Recover, and Recycle with immutable scale receipts."
-          customDetails={[
-            { label: 'Facility License', value: 'CPCB-REC-2026-BLR-884', icon: <Building className="w-3.5 h-3.5 text-slate-400" /> },
-            { label: 'Dock Location', value: 'Peenya Industrial Area, Phase II, Bengaluru', icon: <Scale className="w-3.5 h-3.5 text-slate-400" /> },
-          ]}
-          badges={[
-            {
-              label: 'Receiving Dock Status',
-              value: 'Active & Accepting',
-              subtext: 'Weighbridge calibrated today',
-              color: 'emerald',
-              icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
-            },
-            {
-              label: 'Incoming Batches Queue',
-              value: batches.length,
-              subtext: 'Awaiting scale verification',
-              color: 'blue',
-              icon: <Package className="w-4 h-4 text-blue-600" />,
-            },
-            {
-              label: 'Circularity Compliance',
-              value: '99.2%',
-              subtext: 'Zero-Landfill certified',
-              color: 'purple',
-              icon: <Layers className="w-4 h-4 text-purple-600" />,
-            },
-            {
-              label: 'EPR Credits Minted',
-              value: '4,120 kg',
-              subtext: 'Released to registered brands',
-              color: 'amber',
-              icon: <Award className="w-4 h-4 text-amber-600" />,
-            },
-          ]}
+          title={headerInfo.title}
+          description={headerInfo.description}
+          badge={headerInfo.badge}
+          actions={headerInfo.actions}
         />
 
       {/* Success Notification */}
@@ -645,6 +695,15 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
             </div>
           </div>
         </div>
+      )}
+
+      {/* VIEW 5: FACILITY PROFILE & REGISTRY UPDATE */}
+      {activeTab === 'profile' && (
+        <RecyclerProfileSettings
+          currentUser={currentUser}
+          onProfileUpdated={(updated) => setCurrentUser(updated)}
+          onNavigateTab={(tab) => setActiveTab(tab as RecyclerTab)}
+        />
       )}
       </div>
     </DashboardSidebarLayout>

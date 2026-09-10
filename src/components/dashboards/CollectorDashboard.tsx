@@ -42,7 +42,7 @@ import {
   getStoredPartners,
 } from '../../services/mockData';
 import { QRCodeSVG } from '../common/QRCodeSVG';
-import { RoleProfileCard } from '../common/RoleProfileCard';
+import { DashboardTaskHeader } from '../common/DashboardTaskHeader';
 import { DashboardSidebarLayout, NavSectionItem } from '../common/DashboardSidebarLayout';
 import { CollectorProfileSettings } from './collector/CollectorProfileSettings';
 import { CollectorWallet } from './collector/CollectorWallet';
@@ -260,6 +260,95 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
     },
   ];
 
+  const getTaskHeaderInfo = (): {
+    title: string;
+    description: string;
+    badge?: React.ReactNode;
+    actions?: React.ReactNode;
+  } => {
+    switch (activeTab) {
+      case 'pickups':
+        return {
+          title: 'Pickup Requests: Receive, Review & Request',
+          description: 'Receive citizen requests, review individual item segments, and request the doorstep pickup to collect e-waste items.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              {pendingPickups.length} to Review
+            </span>
+          ),
+          actions: (
+            <button
+              onClick={toggleConnectivity}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                isOnline
+                  ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+              }`}
+            >
+              {isOnline ? 'Online (Simulate Offline)' : 'Offline (Reconnect & Sync)'}
+            </button>
+          ),
+        };
+      case 'recorder':
+        return {
+          title: 'Field Digital Scale & QR Intake',
+          description: 'Log calibrated weight scale values, attach field verification photos, and seal digital QR tracking code.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Scale Verification
+            </span>
+          ),
+        };
+      case 'smart_route':
+        return {
+          title: 'Smart Route Navigation & Downstream Recyclers',
+          description: 'Locate authorized recyclers and high-yield collection depots by live scrap price per kg and distance.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Live Rates &amp; GPS
+            </span>
+          ),
+        };
+      case 'trust':
+        return {
+          title: 'Collector Trust & Performance',
+          description: 'Track your weighbridge accuracy, zero-tamper rating, and CPCB audit compliance score.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Trust Score: {currentUser.trustScore ?? 94}/100
+            </span>
+          ),
+        };
+      case 'wallet':
+        return {
+          title: 'Collector Wallet & Cashback Transfer',
+          description: 'Earned cashback commission from collected e-waste. Transfer instantly to your bank account or UPI VPA.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              ₹{(currentUser.walletBalanceINR ?? 0).toLocaleString('en-IN')} Available
+            </span>
+          ),
+        };
+      case 'profile':
+        return {
+          title: 'Collector Profile & Verification',
+          description: 'Update personal details, register and verify your Collector ID & Member ID, and set up payout accounts.',
+          badge: (
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${verificationBadge.color} border border-current/20`}>
+              {verificationBadge.label}
+            </span>
+          ),
+        };
+      default:
+        return {
+          title: 'Collector Dashboard',
+          description: 'E-waste informal collector operations and chain of custody',
+        };
+    }
+  };
+
+  const headerInfo = getTaskHeaderInfo();
+
   return (
     <DashboardSidebarLayout
       user={currentUser}
@@ -269,81 +358,16 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
       accentColor="amber"
     >
       <div className="space-y-6">
-        {/* 1. Basic Details of the Collector (Role Profile Card) */}
-        <RoleProfileCard
+        {/* Dynamic Task & Data Header (Replacing bulky static profile card) */}
+        <DashboardTaskHeader
           user={currentUser}
-          subtitle="Offline-first digital chain of custody. Capture collections, log photos, record digital scale weights, and navigate to verified downstream buyers."
-          customDetails={[
-            { label: 'Collector ID', value: currentUser.collectorId || 'Not Set', icon: <Truck className="w-3.5 h-3.5 text-slate-400" /> },
-            { label: 'Member ID', value: currentUser.memberId || 'Not Set', icon: <BadgeCheck className="w-3.5 h-3.5 text-slate-400" /> },
-            { label: 'Operating Territory', value: currentUser.operatingTerritory || 'Indiranagar & Koramangala, Bengaluru', icon: <MapPin className="w-3.5 h-3.5 text-slate-400" /> },
-          ]}
-          badges={[
-            {
-              label: 'ReLoop Trust Score',
-              value: `${currentUser.trustScore ?? 94} / 100`,
-              subtext: '97% weight accuracy across 184 handovers',
-              color: 'emerald',
-              icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />,
-            },
-            {
-              label: 'Available Wallet',
-              value: `₹${(currentUser.walletBalanceINR ?? 0).toLocaleString('en-IN')}`,
-              subtext: 'Tap Wallet & Cashback to transfer',
-              color: 'amber',
-              icon: <Wallet className="w-4 h-4 text-amber-600" />,
-            },
-            {
-              label: 'ID Verification',
-              value: verificationBadge.label,
-              subtext:
-                verificationStatus === 'verified'
-                  ? 'Collector & Member ID confirmed'
-                  : verificationStatus === 'pending'
-                  ? 'Awaiting back-office review'
-                  : 'Complete verification in Profile',
-              color: verificationStatus === 'verified' ? 'emerald' : verificationStatus === 'pending' ? 'amber' : 'slate',
-              icon:
-                verificationStatus === 'verified' ? (
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                ) : verificationStatus === 'pending' ? (
-                  <Clock3 className="w-4 h-4 text-amber-600" />
-                ) : (
-                  <ShieldAlert className="w-4 h-4 text-slate-500" />
-                ),
-            },
-            {
-              label: 'Network Mode',
-              value: isOnline ? 'Online (Synced)' : 'Offline (SQLite)',
-              subtext: syncStatus === 'synced' ? 'Local DB in sync' : `${syncStatus} queue`,
-              color: isOnline ? 'blue' : 'amber',
-              icon: isOnline ? <Wifi className="w-4 h-4 text-blue-600" /> : <WifiOff className="w-4 h-4 text-amber-600" />,
-            },
-            {
-              label: 'Pending Pickups',
-              value: pendingPickups.length,
-              subtext: 'Awaiting doorstep visit',
-              color: 'slate',
-              icon: <Package className="w-4 h-4 text-slate-600" />,
-            },
-          ]}
-          actions={
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleConnectivity}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  isOnline
-                    ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border-rose-500/30'
-                    : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border-emerald-500/30'
-                }`}
-              >
-                {isOnline ? 'Simulate Offline Mode' : 'Reconnect & Sync'}
-              </button>
-            </div>
-          }
+          title={headerInfo.title}
+          description={headerInfo.description}
+          badge={headerInfo.badge}
+          actions={headerInfo.actions}
         />
 
-      {/* 3. Segregated Feature Views */}
+        {/* 3. Segregated Feature Views */}
 
       {/* VIEW 1: COLLECTION QUEUE & DOORSTEP PICKUPS */}
       {activeTab === 'pickups' && (

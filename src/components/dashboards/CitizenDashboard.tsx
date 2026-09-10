@@ -24,8 +24,8 @@ import {
 } from 'lucide-react';
 import { User, PickupRequest, PickupItem } from '../../types';
 import { getStoredPickups, savePickup } from '../../services/mockData';
-import { RoleProfileCard } from '../common/RoleProfileCard';
 import { DashboardSidebarLayout, NavSectionItem } from '../common/DashboardSidebarLayout';
+import { DashboardTaskHeader } from '../common/DashboardTaskHeader';
 import { CitizenProfileSettings } from './citizen/CitizenProfileSettings';
 import { CitizenRewardCenter } from './citizen/CitizenRewardCenter';
 
@@ -41,14 +41,14 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
   onOpenWhatsApp,
 }) => {
   const [currentUser, setCurrentUser] = useState<User>(initialCurrentUser);
-  const [pickups, setPickups] = useState<PickupRequest[]>(getStoredPickups());
-  const [activeTab, setActiveTab] = useState<CitizenTab>('requests');
-
-  // Keep local user state in sync if the parent-level session user changes
   React.useEffect(() => {
     setCurrentUser(initialCurrentUser);
   }, [initialCurrentUser]);
+
+  const [pickups, setPickups] = useState<PickupRequest[]>(getStoredPickups());
+  const [activeTab, setActiveTab] = useState<CitizenTab>('requests');
   const [selectedReceipt, setSelectedReceipt] = useState<PickupRequest | null>(null);
+  const [redeemSuccess, setRedeemSuccess] = useState(false);
   const [showNewPickupSuccess, setShowNewPickupSuccess] = useState(false);
 
   // New pickup form state
@@ -112,6 +112,11 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
     setBatteryCount(0);
   };
 
+  const handleSimulatedRedeem = () => {
+    setRedeemSuccess(true);
+    setTimeout(() => setRedeemSuccess(false), 4000);
+  };
+
   const citizenNavItems: NavSectionItem[] = [
     {
       id: 'requests',
@@ -141,20 +146,100 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
     {
       id: 'rewards',
       label: 'Credit / Reward Score',
-      icon: <Award className="w-4 h-4" />,
+      icon: <Gift className="w-4 h-4" />,
       badge: `${currentUser.rewardPoints ?? 120} pts`,
       badgeColor: 'bg-teal-100 text-teal-800',
       category: 'analysis',
-      description: 'Score history by product & convert to cashback',
+      description: 'Total score, per-product history, and UPI/bank cashback conversion',
     },
     {
       id: 'profile',
-      label: 'Profile & Account',
+      label: 'Profile Update',
       icon: <UserCog className="w-4 h-4" />,
       category: 'account',
-      description: 'Update personal, address & payout details',
+      description: 'Update your address, phone, and payout credentials',
     },
   ];
+
+  const getTaskHeaderInfo = () => {
+    switch (activeTab) {
+      case 'requests':
+        return {
+          title: 'My Requests & Verified Custody Journey',
+          description: 'Answers the question: "Where did my e-waste go?" Track your devices transparently all the way to formal circularity.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {myPickups.length} Total Pickups
+            </span>
+          ),
+          actions: (
+            <button
+              onClick={() => setActiveTab('schedule')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Book Pickup</span>
+            </button>
+          ),
+        };
+      case 'schedule':
+        return {
+          title: 'Schedule Doorstep E-Waste Pickup',
+          description: 'Enter your address and device inventory. An authorized informal collector will arrive with calibrated digital scales.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Doorstep Service
+            </span>
+          ),
+        };
+      case 'rewards':
+        return {
+          title: 'Credit / Reward Score & Cashback',
+          description: 'Track cumulative green points, view product-by-product reward earnings history, and redeem instant cashback.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {currentUser.rewardPoints ?? 120} Available Points
+            </span>
+          ),
+        };
+      case 'assistant':
+        return {
+          title: 'WhatsApp E-Waste Concierge',
+          description: 'Schedule pickups and track disposal with zero app installation directly over verified WhatsApp.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Zero-App Service
+            </span>
+          ),
+          actions: (
+            <button
+              onClick={onOpenWhatsApp}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Open WhatsApp</span>
+            </button>
+          ),
+        };
+      case 'profile':
+        return {
+          title: 'Profile Details & Update',
+          description: 'Update your contact details, doorstep pickup address, and payment disbursement accounts.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              Account Settings
+            </span>
+          ),
+        };
+      default:
+        return {
+          title: 'Citizen Dashboard',
+          description: 'Manage your circular e-waste journey',
+        };
+    }
+  };
+
+  const headerInfo = getTaskHeaderInfo();
 
   return (
     <DashboardSidebarLayout
@@ -166,66 +251,16 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
       onOpenWhatsApp={onOpenWhatsApp}
     >
       <div className="space-y-6">
-        {/* 1. Basic Details of the Role Person (Clean Profile Card) */}
-        <RoleProfileCard
+        {/* Dynamic Task & Data Header (Replacing bulky static profile card) */}
+        <DashboardTaskHeader
           user={currentUser}
-          subtitle="Schedule free doorstep e-waste pickups by authorized informal collectors. Track your devices transparently all the way to formal circularity."
-          customDetails={[
-            { label: 'Area / Zone', value: 'Indiranagar, Bengaluru', icon: <MapPin className="w-3.5 h-3.5 text-slate-400" /> },
-            { label: 'UPI Linked', value: `${currentUser.email.split('@')[0]}@okhdfcbank`, icon: <Wallet className="w-3.5 h-3.5 text-slate-400" /> },
-          ]}
-          badges={[
-            {
-              label: 'Green Reward Balance',
-              value: `${currentUser.rewardPoints || 120} pts`,
-              subtext: `₹${currentUser.rewardPoints || 120} instant UPI redeemable`,
-              color: 'emerald',
-              icon: <Gift className="w-4 h-4 text-emerald-600" />,
-            },
-            {
-              label: 'Total Pickups Logged',
-              value: myPickups.length,
-              subtext: `${pendingCount} currently awaiting collector`,
-              color: 'blue',
-              icon: <Package className="w-4 h-4 text-blue-600" />,
-            },
-            {
-              label: 'E-Waste Diverted',
-              value: '12.4 kg',
-              subtext: 'Kept out of informal landfills',
-              color: 'amber',
-              icon: <ShieldCheck className="w-4 h-4 text-amber-600" />,
-            },
-            {
-              label: 'CO2e Avoided',
-              value: '18.6 kg',
-              subtext: 'Verified circularity outcome',
-              color: 'purple',
-              icon: <Sparkles className="w-4 h-4 text-purple-600" />,
-            },
-          ]}
-          actions={
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                id="citizen-quick-book-btn"
-                onClick={() => setActiveTab('schedule')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Book Pickup</span>
-              </button>
-              <button
-                onClick={onOpenWhatsApp}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold backdrop-blur-xs border border-white/20 transition-all cursor-pointer"
-              >
-                <Smartphone className="w-3.5 h-3.5 text-emerald-300" />
-                <span>WhatsApp Bot</span>
-              </button>
-            </div>
-          }
+          title={headerInfo.title}
+          description={headerInfo.description}
+          badge={headerInfo.badge}
+          actions={headerInfo.actions}
         />
 
-      {/* 3. Segregated Feature Views: Render ONLY the selected view */}
+        {/* 3. Segregated Feature Views: Render ONLY the selected view */}
 
       {/* VIEW 1: MY REQUESTS & WASTE JOURNEY */}
       {activeTab === 'requests' && (
@@ -553,20 +588,11 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
         </div>
       )}
 
-      {/* VIEW 3: GREEN REWARDS & IMPACT */}
+      {/* VIEW 3: CREDIT / REWARD SCORE & CASH CONVERSION */}
       {activeTab === 'rewards' && (
         <CitizenRewardCenter
           currentUser={currentUser}
-          onPointsUpdated={(newPoints) => setCurrentUser((prev) => ({ ...prev, rewardPoints: newPoints }))}
-          onNavigateTab={(tab) => setActiveTab(tab as CitizenTab)}
-        />
-      )}
-
-      {/* VIEW 5: PROFILE & ACCOUNT SETTINGS */}
-      {activeTab === 'profile' && (
-        <CitizenProfileSettings
-          currentUser={currentUser}
-          onProfileUpdated={(updatedUser) => setCurrentUser(updatedUser)}
+          onPointsUpdated={(newPts) => setCurrentUser((prev) => ({ ...prev, rewardPoints: newPts }))}
           onNavigateTab={(tab) => setActiveTab(tab as CitizenTab)}
         />
       )}
@@ -614,6 +640,15 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* VIEW 5: PROFILE UPDATE & DETAILS */}
+      {activeTab === 'profile' && (
+        <CitizenProfileSettings
+          currentUser={currentUser}
+          onProfileUpdated={(updated) => setCurrentUser(updated)}
+          onNavigateTab={(tab) => setActiveTab(tab as CitizenTab)}
+        />
       )}
 
       {/* Impact Receipt Modal */}

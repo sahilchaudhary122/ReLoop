@@ -12,7 +12,8 @@ import {
   Layers,
   BarChart3,
   SlidersHorizontal,
-  Home
+  Home,
+  Pencil
 } from 'lucide-react';
 import { User } from '../../types';
 import { getRoleDisplayName, logoutUser } from '../../services/auth';
@@ -187,13 +188,24 @@ export const DashboardSidebarLayout: React.FC<DashboardSidebarLayoutProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Services & Analysis</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => onChangeId('profile')}
+              title="Edit Profile"
+              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Menu</span>
+            </button>
+          </div>
         </div>
 
         {/* Horizontal Quick-Tab Row on Mobile */}
@@ -222,26 +234,42 @@ export const DashboardSidebarLayout: React.FC<DashboardSidebarLayoutProps> = ({
       <div className="flex flex-col lg:flex-row items-start gap-6">
         {/* DESKTOP SIDEBAR (Visible on lg and larger) */}
         <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
-          {/* User Mini Profile Box */}
-          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 mb-4">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-11 h-11 rounded-xl ${theme.avatarBg} flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0 font-display`}
+          {/* User Mini Profile Box with Edit Symbol */}
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 mb-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`w-9 h-9 rounded-xl ${theme.avatarBg} flex items-center justify-center font-extrabold text-xs shadow-xs shrink-0 font-display`}
+                >
+                  {initials}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {user.name}
+                  </div>
+                  <div className="text-[10px] font-semibold text-slate-500 truncate">
+                    {getRoleDisplayName(user.role)}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onChangeId('profile')}
+                title="Edit Profile Details"
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 ${
+                  activeId === 'profile'
+                    ? 'bg-white text-emerald-700 border-emerald-300 shadow-2xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 border-slate-200'
+                }`}
               >
-                {initials}
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900 truncate">
-                  {user.name}
-                </div>
-                <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
-                  {getRoleDisplayName(user.role)}
-                </div>
-                <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                  <span>Verified Identity</span>
-                </div>
-              </div>
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500">
+              <span className="font-semibold uppercase tracking-wider text-slate-400">Selected View:</span>
+              <span className="font-bold text-slate-800 truncate max-w-[130px]">{activeItem?.label}</span>
             </div>
           </div>
 

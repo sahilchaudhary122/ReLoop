@@ -15,6 +15,12 @@ export interface User {
   city?: string;
   pincode?: string;
   upiId?: string;
+  collectorId?: string;
+  memberId?: string;
+  verificationStatus?: 'verified' | 'pending' | 'unverified';
+  idProofType?: string;
+  idProofNumber?: string;
+  operatingTerritory?: string;
   bankAccount?: {
     accountNumber?: string;
     ifscCode?: string;
@@ -26,13 +32,17 @@ export interface User {
     sms: boolean;
     email: boolean;
   };
-  // Collector-specific identity & verification
-  collectorId?: string;
-  memberId?: string;
-  verificationStatus?: 'unverified' | 'pending' | 'verified';
-  idProofType?: 'Aadhaar' | 'Voter ID' | 'Driving License' | 'PAN Card';
-  idProofNumber?: string;
-  operatingTerritory?: string;
+  // Recycler / Refurbisher profile fields
+  licenseNumber?: string;
+  facilityAddress?: string;
+  processingCapacityTonsPerDay?: number;
+  contactPerson?: string;
+  accreditations?: string[];
+  // Brand / CPCB Producer Responsibility Organization fields
+  cpcbRegNumber?: string;
+  gstin?: string;
+  authorizedSignatory?: string;
+  brandCategoryFocus?: string[];
 }
 
 export interface RewardCreditTransaction {
@@ -49,7 +59,7 @@ export interface RewardCreditTransaction {
   paymentMethod?: string;
   referenceNumber?: string;
   notes?: string;
-  actorId?: string; // owning user id (citizen or collector) for wallet/reward filtering
+  actorId?: string;
 }
 
 export interface JWTPayload {

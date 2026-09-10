@@ -17,7 +17,8 @@ import {
   Award,
   Calendar,
   Sparkles,
-  BarChart3
+  BarChart3,
+  UserCog
 } from 'lucide-react';
 import { User, EventLedgerItem, RiskAnomaly, EPRObligationStats } from '../../types';
 import {
@@ -26,16 +27,22 @@ import {
   updateRiskStatus,
   INITIAL_EPR_STATS,
 } from '../../services/mockData';
-import { RoleProfileCard } from '../common/RoleProfileCard';
+import { DashboardTaskHeader } from '../common/DashboardTaskHeader';
 import { DashboardSidebarLayout, NavSectionItem } from '../common/DashboardSidebarLayout';
+import { BrandProfileSettings } from './brand/BrandProfileSettings';
 
 interface BrandDashboardProps {
   currentUser: User;
 }
 
-type BrandTab = 'epr_targets' | 'risk_anomaly' | 'ledger' | 'cpcb_report';
+type BrandTab = 'epr_targets' | 'risk_anomaly' | 'ledger' | 'cpcb_report' | 'profile';
 
-export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) => {
+export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser: initialCurrentUser }) => {
+  const [currentUser, setCurrentUser] = useState<User>(initialCurrentUser);
+  React.useEffect(() => {
+    setCurrentUser(initialCurrentUser);
+  }, [initialCurrentUser]);
+
   const [events, setEvents] = useState<EventLedgerItem[]>(getStoredEvents());
   const [risks, setRisks] = useState<RiskAnomaly[]>(getStoredRisks());
   const [stats, setStats] = useState<EPRObligationStats>(INITIAL_EPR_STATS);
@@ -88,7 +95,90 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
       category: 'analysis',
       description: 'Immutable append-only chain of custody events',
     },
+    {
+      id: 'profile',
+      label: 'Brand & CPCB Profile',
+      icon: <UserCog className="w-4 h-4" />,
+      category: 'account',
+      description: 'CPCB Reg No, GSTIN, Producer Type & Compliance Officer',
+    },
   ];
+
+  const getTaskHeaderInfo = (): {
+    title: string;
+    description: string;
+    badge?: React.ReactNode;
+    actions?: React.ReactNode;
+  } => {
+    switch (activeTab) {
+      case 'epr_targets':
+        return {
+          title: 'EPR Targets & Statutory Obligations',
+          description: 'Monitor annual Extended Producer Responsibility target fulfillment under E-Waste (Management) Rules.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {stats.percentageFulfillment}% Fulfilled
+            </span>
+          ),
+          actions: (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Generate Form 1(A)</span>
+            </button>
+          ),
+        };
+      case 'risk_anomaly':
+        return {
+          title: 'Audit Flags & Discrepancies',
+          description: 'AI-driven anomaly detection across GPS jumps, weight mismatches, and duplicate image hashes.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              {flaggedRisksCount} Active Flags
+            </span>
+          ),
+        };
+      case 'cpcb_report':
+        return {
+          title: 'CPCB-Ready Compliance Report',
+          description: 'Form 1(A) statutory filing report with cryptographically verified chain of custody evidence.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              CPCB Certified
+            </span>
+          ),
+        };
+      case 'ledger':
+        return {
+          title: 'Cryptographic Event Ledger',
+          description: 'Immutable append-only chain of custody events tracking each e-waste batch from doorstep to certified recycler.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              {events.length} Events Logged
+            </span>
+          ),
+        };
+      case 'profile':
+        return {
+          title: 'Brand & CPCB Registration Profile',
+          description: 'Manage official PRO/CPCB registration credentials, producer categories, authorized officer details, and GSTIN.',
+          badge: (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              {currentUser.cpcbRegNumber || 'PRO-302'}
+            </span>
+          ),
+        };
+      default:
+        return {
+          title: 'Brand & CPCB Dashboard',
+          description: 'Extended Producer Responsibility monitoring and regulatory compliance',
+        };
+    }
+  };
+
+  const headerInfo = getTaskHeaderInfo();
 
   return (
     <DashboardSidebarLayout
@@ -99,53 +189,13 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
       accentColor="purple"
     >
       <div className="space-y-6">
-        {/* 1. Basic Details of the Role Person (Role Profile Card) */}
-        <RoleProfileCard
+        {/* Dynamic Task & Data Header (Replacing bulky static profile card) */}
+        <DashboardTaskHeader
           user={currentUser}
-          subtitle="Centralized monitoring of EPR targets, verifiable informal first-mile attribution, tamper-evident audit ledger, and CPCB-ready compliance reporting."
-          customDetails={[
-            { label: 'CPCB Reg No', value: 'PRO-302', icon: <Building className="w-3.5 h-3.5 text-slate-400" /> },
-            { label: 'Reporting Period', value: 'FY 2025-26 (Q4 Current)', icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
-          ]}
-          badges={[
-            {
-              label: 'Annual EPR Obligation',
-              value: `${stats.targetKg.toLocaleString()} kg`,
-              subtext: 'CPCB Registered Target',
-              color: 'slate',
-              icon: <Building className="w-4 h-4 text-slate-600" />,
-            },
-            {
-              label: 'Verified Fulfillment',
-              value: `${stats.verifiedFulfillmentKg.toLocaleString()} kg`,
-              subtext: `${stats.percentageFulfillment}% of target fulfilled`,
-              color: 'emerald',
-              icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
-            },
-            {
-              label: 'Informal First-Mile',
-              value: `${stats.informalChannelKg.toLocaleString()} kg`,
-              subtext: 'Verifiable collector attribution',
-              color: 'purple',
-              icon: <Layers className="w-4 h-4 text-purple-600" />,
-            },
-            {
-              label: 'Ledger Integrity',
-              value: '100%',
-              subtext: 'Zero unverified entries',
-              color: 'blue',
-              icon: <ShieldCheck className="w-4 h-4 text-blue-600" />,
-            },
-          ]}
-          actions={
-            <button
-              onClick={() => setShowReportModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Generate CPCB Report</span>
-            </button>
-          }
+          title={headerInfo.title}
+          description={headerInfo.description}
+          badge={headerInfo.badge}
+          actions={headerInfo.actions}
         />
 
       {/* 3. Segregated Feature Views */}
@@ -389,6 +439,15 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
             </div>
           </div>
         </div>
+      )}
+
+      {/* VIEW 5: BRAND & CPCB PROFILE UPDATE */}
+      {activeTab === 'profile' && (
+        <BrandProfileSettings
+          currentUser={currentUser}
+          onProfileUpdated={(updated) => setCurrentUser(updated)}
+          onNavigateTab={(tab) => setActiveTab(tab as BrandTab)}
+        />
       )}
 
       {/* CPCB-Ready Report Modal */}
