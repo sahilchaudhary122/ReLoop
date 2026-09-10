@@ -7,6 +7,7 @@ import {
   ImpactReceipt,
   PickupRequest,
   RecyclerPartner,
+  RewardCreditTransaction,
   RiskAnomaly,
 } from '../types';
 
@@ -16,6 +17,7 @@ const STORAGE_KEYS = {
   EVENTS: 'reloop_events_v1',
   RISKS: 'reloop_risks_v1',
   PARTNERS: 'reloop_partners_v1',
+  REWARDS: 'reloop_reward_transactions_v1',
 };
 
 export const INITIAL_PICKUP_REQUESTS: PickupRequest[] = [
@@ -403,11 +405,111 @@ export function getStoredPartners(): RecyclerPartner[] {
   return INITIAL_RECYCLER_PARTNERS;
 }
 
+export const INITIAL_REWARD_TRANSACTIONS: RewardCreditTransaction[] = [
+  {
+    id: 'RC-801',
+    type: 'earned',
+    points: 55,
+    amountINR: 55,
+    productName: 'Lenovo ThinkPad T480 (Laptop)',
+    productCategory: 'Laptop',
+    weightKg: 2.2,
+    pickupRequestId: 'PR-1024',
+    date: '2026-03-08T11:20:00Z',
+    status: 'credited',
+    notes: 'Circularity Pathway: Refurbishment for Digital Literacy Program',
+  },
+  {
+    id: 'RC-802',
+    type: 'earned',
+    points: 30,
+    amountINR: 30,
+    productName: 'Samsung Galaxy Android (2x Mobiles)',
+    productCategory: 'Mobile',
+    weightKg: 0.4,
+    pickupRequestId: 'PR-1024',
+    date: '2026-03-08T11:20:00Z',
+    status: 'credited',
+    notes: 'Rare earth minerals & IC components safely recovered',
+  },
+  {
+    id: 'RC-803',
+    type: 'earned',
+    points: 35,
+    amountINR: 35,
+    productName: 'HP LaserJet M1136 Multi-Function Printer',
+    productCategory: 'Printer',
+    weightKg: 8.5,
+    pickupRequestId: 'PR-1024',
+    date: '2026-03-08T11:20:00Z',
+    status: 'credited',
+    notes: 'Plastic chassis & electric stepper motor recovered',
+  },
+  {
+    id: 'RC-804',
+    type: 'earned',
+    points: 15,
+    amountINR: 15,
+    productName: '3x Copper Fast Chargers & Braided Cables',
+    productCategory: 'Charger / Cable',
+    weightKg: 1.3,
+    pickupRequestId: 'PR-1024',
+    date: '2026-03-08T11:20:00Z',
+    status: 'credited',
+    notes: 'High-purity 99.8% electrolytic copper wire recovered',
+  },
+  {
+    id: 'RC-805',
+    type: 'earned',
+    points: 45,
+    amountINR: 45,
+    productName: 'Dell Vostro 1500 Legacy Laptop',
+    productCategory: 'Laptop',
+    weightKg: 2.8,
+    pickupRequestId: 'PR-1011',
+    date: '2026-02-22T14:10:00Z',
+    status: 'credited',
+    notes: 'Motherboard ICs & aluminum heat pipes diverted',
+  },
+  {
+    id: 'RC-806',
+    type: 'redeemed',
+    points: 60,
+    amountINR: 60,
+    productName: 'Cashback Payout (60 Green Points)',
+    productCategory: 'Cashback Payout',
+    date: '2026-03-01T16:45:00Z',
+    status: 'redeemed',
+    paymentMethod: 'UPI - priya@okhdfcbank',
+    referenceNumber: 'UPI-IMPS-8921873910',
+    notes: 'Instant cashback transferred to HDFC Bank VPA',
+  },
+];
+
+export function getStoredRewardTransactions(): RewardCreditTransaction[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.REWARDS);
+    if (data) return JSON.parse(data);
+  } catch (e) {
+    console.error(e);
+  }
+  return INITIAL_REWARD_TRANSACTIONS;
+}
+
+export function saveRewardTransaction(tx: RewardCreditTransaction) {
+  const current = getStoredRewardTransactions();
+  current.unshift(tx);
+  localStorage.setItem(STORAGE_KEYS.REWARDS, JSON.stringify(current));
+  window.dispatchEvent(new Event('reloop_rewards_changed'));
+}
+
 export function resetDemoData() {
   localStorage.setItem(STORAGE_KEYS.PICKUPS, JSON.stringify(INITIAL_PICKUP_REQUESTS));
   localStorage.setItem(STORAGE_KEYS.BATCHES, JSON.stringify(INITIAL_BATCHES));
   localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(INITIAL_EVENTS));
   localStorage.setItem(STORAGE_KEYS.RISKS, JSON.stringify(INITIAL_RISK_FLAGS));
   localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(INITIAL_RECYCLER_PARTNERS));
+  localStorage.setItem(STORAGE_KEYS.REWARDS, JSON.stringify(INITIAL_REWARD_TRANSACTIONS));
   window.dispatchEvent(new Event('reloop_data_changed'));
+  window.dispatchEvent(new Event('reloop_rewards_changed'));
 }

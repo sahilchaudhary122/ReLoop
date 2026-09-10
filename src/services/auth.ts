@@ -12,6 +12,21 @@ export const DEFAULT_ACCOUNTS: User[] = [
     role: 'user',
     phone: '+91 98765 43210',
     rewardPoints: 120,
+    address: '12th Cross, 4th Block, Indiranagar',
+    city: 'Bengaluru',
+    pincode: '560038',
+    upiId: 'priya@okhdfcbank',
+    bankAccount: {
+      accountNumber: '50100489218451',
+      ifscCode: 'HDFC0000128',
+      bankName: 'HDFC Bank',
+      accountHolderName: 'Priya Sharma',
+    },
+    notifications: {
+      whatsapp: true,
+      sms: true,
+      email: true,
+    },
     createdAt: '2026-03-01T10:00:00Z',
   },
   {
@@ -192,6 +207,47 @@ export function saveSession(token: string, user: User) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem('reloop_current_user', JSON.stringify(user));
   window.dispatchEvent(new Event('reloop_auth_changed'));
+}
+
+// Update current user profile details
+export function updateUserProfile(updatedFields: Partial<User>): User | null {
+  try {
+    const { user } = getCurrentSession();
+    if (!user) return null;
+
+    const updatedUser: User = {
+      ...user,
+      ...updatedFields,
+    };
+
+    // Update in registered users storage if custom user
+    try {
+      const saved = localStorage.getItem(USERS_KEY);
+      if (saved) {
+        const users: User[] = JSON.parse(saved);
+        const index = users.findIndex((u) => u.id === updatedUser.id);
+        if (index >= 0) {
+          users[index] = updatedUser;
+          localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+      }
+    } catch (err) {
+      console.error('Error updating registered users cache', err);
+    }
+
+    // Generate renewed token
+    const token = createJWT(updatedUser);
+    saveSession(token, updatedUser);
+    return updatedUser;
+  } catch (e) {
+    console.error('Failed to update user profile', e);
+    return null;
+  }
+}
+
+// Update user reward score
+export function updateUserRewardPoints(newPoints: number): User | null {
+  return updateUserProfile({ rewardPoints: newPoints });
 }
 
 // Clear session

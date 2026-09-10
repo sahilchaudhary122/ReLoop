@@ -11,6 +11,37 @@ export interface User {
   walletBalanceINR?: number;
   rewardPoints?: number;
   createdAt: string;
+  address?: string;
+  city?: string;
+  pincode?: string;
+  upiId?: string;
+  bankAccount?: {
+    accountNumber?: string;
+    ifscCode?: string;
+    accountHolderName?: string;
+    bankName?: string;
+  };
+  notifications?: {
+    whatsapp: boolean;
+    sms: boolean;
+    email: boolean;
+  };
+}
+
+export interface RewardCreditTransaction {
+  id: string;
+  type: 'earned' | 'redeemed';
+  points: number;
+  amountINR: number;
+  productName: string;
+  productCategory: 'Laptop' | 'Mobile' | 'Printer' | 'Charger / Cable' | 'Battery' | 'Television / Screen' | 'Other E-Waste' | 'Bonus' | 'Cashback Payout';
+  weightKg?: number;
+  pickupRequestId?: string;
+  date: string;
+  status: 'credited' | 'processing' | 'redeemed';
+  paymentMethod?: string;
+  referenceNumber?: string;
+  notes?: string;
 }
 
 export interface JWTPayload {

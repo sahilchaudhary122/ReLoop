@@ -23,7 +23,7 @@ export interface NavSectionItem {
   icon: React.ReactNode;
   badge?: string | number;
   badgeColor?: string;
-  category: 'service' | 'analysis';
+  category: 'service' | 'analysis' | 'account';
   description?: string;
 }
 
@@ -48,9 +48,10 @@ export const DashboardSidebarLayout: React.FC<DashboardSidebarLayoutProps> = ({
 }) => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  // Group items by category: Services vs. Data Analysis
+  // Group items by category: Services, Data Analysis, Account & Settings
   const serviceItems = navItems.filter((item) => item.category === 'service');
   const analysisItems = navItems.filter((item) => item.category === 'analysis');
+  const accountItems = navItems.filter((item) => item.category === 'account');
   const activeItem = navItems.find((item) => item.id === activeId) || navItems[0];
 
   const getThemeClasses = (color: string) => {
@@ -262,6 +263,17 @@ export const DashboardSidebarLayout: React.FC<DashboardSidebarLayoutProps> = ({
             {renderNavList(analysisItems)}
           </div>
 
+          {/* SECTION 3: ACCOUNT & SETTINGS (If defined) */}
+          {accountItems.length > 0 && (
+            <div className="space-y-1 mb-4 pt-3 border-t border-slate-100">
+              <div className="px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                <span>Account & Profile</span>
+                <UserIcon className="w-3 h-3 text-slate-400" />
+              </div>
+              {renderNavList(accountItems)}
+            </div>
+          )}
+
           {/* Bottom Sidebar Status & Tools */}
           <div className="mt-auto pt-3 border-t border-slate-100 space-y-2">
             <div className="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-100 text-[11px] text-emerald-900 flex items-center gap-2">
@@ -328,6 +340,15 @@ export const DashboardSidebarLayout: React.FC<DashboardSidebarLayoutProps> = ({
                   </div>
                   {renderNavList(analysisItems)}
                 </div>
+
+                {accountItems.length > 0 && (
+                  <div className="pt-3 border-t border-slate-100">
+                    <div className="px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Account & Profile
+                    </div>
+                    {renderNavList(accountItems)}
+                  </div>
+                )}
               </div>
 
               {/* Bottom Drawer Actions */}
