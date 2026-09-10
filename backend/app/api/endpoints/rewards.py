@@ -21,4 +21,4 @@ def get_balance(current_user: User = Depends(get_current_user), db: Session = De
 
 @router.post("/redeem", response_model=RedemptionResponse)
 def request_redemption(req: RedemptionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return reward_service.request_redemption(db, current_user.id, req.amount)
+    return reward_service.request_redemption(db, current_user.id, req.amount, req.upi_id)

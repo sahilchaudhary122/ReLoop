@@ -17,12 +17,15 @@ class RewardTransactionResponse(BaseModel):
 
 class RedemptionRequest(BaseModel):
     amount: float = Field(..., gt=0)
+    upi_id: Optional[str] = None
 
 class RedemptionResponse(BaseModel):
     id: int
     user_id: int
     amount: float
+    upi_id: Optional[str] = None
     status: RedemptionStatus
+    payment_reference: Optional[str] = None
     created_at: datetime
 
     class Config:

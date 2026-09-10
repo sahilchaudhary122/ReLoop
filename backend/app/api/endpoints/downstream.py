@@ -47,3 +47,27 @@ def recycler_process(id: int, req: ProcessingConfirmationRequest, current_user: 
     if current_user.role != UserRole.RECYCLER and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Recyclers can process batches")
     return downstream_service.recycler_process(db, id, current_user, req.latitude, req.longitude)
+
+@router.get("/aggregator/dashboard")
+def get_aggregator_dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role not in [UserRole.AGGREGATOR, UserRole.ADMIN]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
+    return downstream_service.get_aggregator_dashboard(db)
+
+@router.get("/aggregator/inventory", response_model=list[BatchResponse])
+def get_aggregator_inventory(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role not in [UserRole.AGGREGATOR, UserRole.ADMIN]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
+    return downstream_service.get_aggregator_inventory(db)
+
+@router.get("/aggregator/incoming", response_model=list[BatchResponse])
+def get_aggregator_incoming(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role not in [UserRole.AGGREGATOR, UserRole.ADMIN]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
+    return downstream_service.get_aggregator_incoming(db)
+
+@router.get("/recycler/incoming", response_model=list[BatchResponse])
+def get_recycler_incoming(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role not in [UserRole.RECYCLER, UserRole.ADMIN]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
+    return downstream_service.get_recycler_incoming(db)

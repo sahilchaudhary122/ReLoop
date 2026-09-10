@@ -18,12 +18,17 @@ class Settings(BaseSettings):
     WHATSAPP_APP_SECRET: Optional[str] = None
     WHATSAPP_API_VERSION: str = "v20.0"
 
+    # Telegram Configuration
+    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    TELEGRAM_ENABLED: bool = False
+
     # Vision Verification Configuration
+    AI_PROVIDER: str = "demo"  # "demo", "local", "gemini"
     GEMINI_API_KEY: Optional[str] = None
     VISION_VERIFICATION_ENABLED: bool = True
     GEMINI_VISION_MODEL: str = "gemini-1.5-flash"
-    VISION_ACCEPT_THRESHOLD: float = 0.80
-    VISION_REJECT_THRESHOLD: float = 0.80
+    VISION_ACCEPT_THRESHOLD: float = 0.75
+    VISION_REJECT_THRESHOLD: float = 0.75
     VISION_TIMEOUT_SECONDS: int = 20
     
     class Config:

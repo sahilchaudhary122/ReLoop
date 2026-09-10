@@ -5,10 +5,18 @@ from app.models.user import User
 
 class PickupService:
     @staticmethod
-    def create_pickup(db: Session, citizen_id: int, latitude: float, longitude: float, description: str = None) -> PickupRequest:
+    def create_pickup(db: Session, citizen_id: int, latitude: float, longitude: float, description: str = None, photo_url: str = None) -> PickupRequest:
         # Validate GPS range on backend (authoritative)
         if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
             raise ValueError("Invalid GPS coordinates")
+
+        # E-Waste verification check if photo or description provided
+        check_input = photo_url or description
+        if check_input:
+            from app.services.vision_verification_service import vision_service
+            res = vision_service.classify_image(check_input)
+            if res.decision == "REJECT":
+                raise ValueError(f"Pickup request rejected: Item is not classified as e-waste ({res.reason})")
 
         # Concurrency-safe sequence retrieval
         next_val = db.execute(text("SELECT nextval('pickup_request_seq')")).scalar()

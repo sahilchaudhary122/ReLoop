@@ -33,6 +33,7 @@ class Redemption(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
+    upi_id = Column(String, nullable=True)
     status = Column(Enum(RedemptionStatus), default=RedemptionStatus.PENDING, nullable=False)
     payment_reference = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

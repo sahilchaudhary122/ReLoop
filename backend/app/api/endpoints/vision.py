@@ -50,3 +50,15 @@ def verify_item_photo(item_id: int, current_user: User = Depends(get_current_use
         }
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+class DirectImageVerifyRequest(BaseModel):
+    image: str
+
+@router.post("/verify-image")
+def verify_image(req: DirectImageVerifyRequest, current_user: User = Depends(get_current_user)):
+    """
+    Direct endpoint for Citizens, Collectors, and Integrations to classify e-waste images.
+    Returns standard AI verification contract.
+    """
+    result = vision_service.classify_image(req.image)
+    return result.to_contract_dict()

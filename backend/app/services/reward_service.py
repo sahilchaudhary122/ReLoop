@@ -39,12 +39,20 @@ class RewardService:
         return balance
 
     @staticmethod
-    def request_redemption(db: Session, user_id: int, amount: float) -> Redemption:
+    def request_redemption(db: Session, user_id: int, amount: float, upi_id: str = None) -> Redemption:
         balance = RewardService.get_wallet_balance(db, user_id)
         if amount > balance:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds")
 
-        redemption = Redemption(user_id=user_id, amount=amount, status=RedemptionStatus.PENDING)
+        import uuid
+        ref = f"UPI-PAY-{uuid.uuid4().hex[:8].upper()}" if upi_id else None
+        redemption = Redemption(
+            user_id=user_id,
+            amount=amount,
+            upi_id=upi_id,
+            status=RedemptionStatus.COMPLETED if upi_id else RedemptionStatus.PENDING,
+            payment_reference=ref
+        )
         db.add(redemption)
         db.commit()
         db.refresh(redemption)

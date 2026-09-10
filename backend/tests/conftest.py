@@ -1,6 +1,8 @@
 import pytest
 from app.core.database import SessionLocal
 from app.models.user import User, UserRole
+from app.models.pickup import PickupRequest
+from app.models.batch import Batch, Item
 from app.core.security import get_password_hash
 
 @pytest.fixture(scope="session", autouse=True)

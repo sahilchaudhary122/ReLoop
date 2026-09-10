@@ -136,4 +136,53 @@ class DownstreamService:
             db.rollback()
             raise e
 
+    @staticmethod
+    def get_aggregator_dashboard(db: Session) -> dict:
+        from app.models.pickup import PickupRequest, PickupStatus
+        from app.models.batch import Batch, Item
+
+        incoming = db.query(Batch).join(Batch.pickup_request).filter(PickupRequest.status == PickupStatus.COLLECTED).all()
+        in_hub = db.query(Batch).join(Batch.pickup_request).filter(
+            PickupRequest.status.in_(["AGGREGATOR_RECEIVED", "WEIGHT_VERIFIED", "SORTED"])
+        ).all()
+        sorted_count = db.query(Batch).join(Batch.pickup_request).filter(PickupRequest.status == "SORTED").count()
+
+        total_weight = 0.0
+        for b in in_hub:
+            for item in b.items:
+                total_weight += (item.verified_weight or item.declared_weight or 0.0)
+
+        return {
+            "incoming_batches_count": len(incoming),
+            "in_hub_batches_count": len(in_hub),
+            "sorted_batches_count": sorted_count,
+            "total_inventory_kg": round(total_weight, 2),
+            "incoming_batches": [{"id": b.id, "cb_id": b.cb_id, "collector_id": b.collector_id} for b in incoming],
+            "in_hub_batches": [{"id": b.id, "cb_id": b.cb_id, "status": b.pickup_request.status} for b in in_hub]
+        }
+
+    @staticmethod
+    def get_aggregator_inventory(db: Session) -> list:
+        from app.models.pickup import PickupRequest
+        from app.models.batch import Batch
+
+        batches = db.query(Batch).join(Batch.pickup_request).filter(
+            PickupRequest.status.in_(["AGGREGATOR_RECEIVED", "WEIGHT_VERIFIED", "SORTED"])
+        ).all()
+        return batches
+
+    @staticmethod
+    def get_aggregator_incoming(db: Session) -> list:
+        from app.models.pickup import PickupRequest, PickupStatus
+        from app.models.batch import Batch
+
+        return db.query(Batch).join(Batch.pickup_request).filter(PickupRequest.status == PickupStatus.COLLECTED).all()
+
+    @staticmethod
+    def get_recycler_incoming(db: Session) -> list:
+        from app.models.pickup import PickupRequest
+        from app.models.batch import Batch
+
+        return db.query(Batch).join(Batch.pickup_request).filter(PickupRequest.status == "SORTED").all()
+
 downstream_service = DownstreamService()
