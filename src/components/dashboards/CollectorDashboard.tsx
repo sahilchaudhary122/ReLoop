@@ -18,13 +18,19 @@ import {
   RefreshCw,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
   TrendingUp,
   Sparkles,
   Truck,
   ArrowRight,
   CheckCircle2,
   Sliders,
-  DollarSign
+  DollarSign,
+  UserCog,
+  ListChecks,
+  BadgeCheck,
+  Clock3,
+  ShieldAlert
 } from 'lucide-react';
 import { User, PickupRequest, CollectionBatch, HazardType } from '../../types';
 import {
@@ -38,19 +44,27 @@ import {
 import { QRCodeSVG } from '../common/QRCodeSVG';
 import { RoleProfileCard } from '../common/RoleProfileCard';
 import { DashboardSidebarLayout, NavSectionItem } from '../common/DashboardSidebarLayout';
+import { CollectorProfileSettings } from './collector/CollectorProfileSettings';
+import { CollectorWallet } from './collector/CollectorWallet';
 
 interface CollectorDashboardProps {
   currentUser: User;
 }
 
-type CollectorTab = 'pickups' | 'recorder' | 'smart_route' | 'wallet_trust';
+type CollectorTab = 'pickups' | 'recorder' | 'smart_route' | 'trust' | 'wallet' | 'profile';
 
-export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentUser }) => {
+export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentUser: initialCurrentUser }) => {
+  const [currentUser, setCurrentUser] = useState<User>(initialCurrentUser);
+  React.useEffect(() => {
+    setCurrentUser(initialCurrentUser);
+  }, [initialCurrentUser]);
+
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'pending' | 'syncing'>('synced');
   const [batches, setBatches] = useState<CollectionBatch[]>(getStoredBatches());
   const [pickups, setPickups] = useState<PickupRequest[]>(getStoredPickups());
   const [activeTab, setActiveTab] = useState<CollectorTab>('pickups');
+  const [expandedPickupId, setExpandedPickupId] = useState<string | null>(null);
   const partners = getStoredPartners();
 
   // Active collection state
@@ -89,6 +103,29 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
       setVoiceTranscript('Recognized: "Mobile × 2, Laptop × 1, Charger × 3"');
       setIsListening(false);
     }, 1800);
+  };
+
+  // Collector reviews the individual item segments of a request, then formally
+  // requests / accepts the pickup before it can be collected.
+  const handleAcceptPickup = (pickup: PickupRequest) => {
+    pickup.status = 'accepted';
+    pickup.assignedCollectorId = currentUser.id;
+    pickup.assignedCollectorName = currentUser.name;
+    savePickup(pickup);
+
+    addEvent({
+      eventCode: 'EVENT 000',
+      title: 'Collector Requested & Accepted Pickup',
+      actorRole: 'collector',
+      actorName: `${currentUser.name} (${currentUser.collectorId || 'Collector'})`,
+      batchId: pickup.id,
+      timestamp: new Date().toISOString(),
+      details: `Reviewed ${pickup.items.length} item segment(s) and requested doorstep pickup at ${pickup.address}.`,
+      metadata: { pickupId: pickup.id, itemSegments: pickup.items.length },
+    });
+
+    setPickups(getStoredPickups());
+    setExpandedPickupId(null);
   };
 
   const handleStartCollect = (pickup: PickupRequest) => {
@@ -156,22 +193,33 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
   };
 
   const pendingPickups = pickups.filter((p) => p.status === 'pending');
+  const readyForCollectionPickups = pickups.filter(
+    (p) => p.status === 'accepted' && (!p.assignedCollectorId || p.assignedCollectorId === currentUser.id)
+  );
+
+  const verificationStatus = currentUser.verificationStatus || 'unverified';
+  const verificationBadge =
+    verificationStatus === 'verified'
+      ? { label: 'Verified', color: 'bg-emerald-100 text-emerald-800' }
+      : verificationStatus === 'pending'
+      ? { label: 'Pending', color: 'bg-amber-100 text-amber-800' }
+      : { label: 'Unverified', color: 'bg-rose-100 text-rose-800' };
 
   const collectorNavItems: NavSectionItem[] = [
     {
       id: 'pickups',
-      label: 'Collection Queue',
+      label: 'Pickup Requests',
       icon: <Package className="w-4 h-4" />,
-      badge: pendingPickups.length > 0 ? `${pendingPickups.length} waiting` : undefined,
+      badge: pendingPickups.length > 0 ? `${pendingPickups.length} to review` : undefined,
       badgeColor: 'bg-amber-100 text-amber-800',
       category: 'service',
-      description: 'Incoming citizen doorstep requests',
+      description: 'Receive, review item segments & request pickup',
     },
     {
       id: 'recorder',
       label: 'Field Scale & QR Recorder',
       icon: <Scale className="w-4 h-4" />,
-      badge: activePickup ? 'Active Form' : undefined,
+      badge: activePickup ? 'Active Form' : readyForCollectionPickups.length > 0 ? `${readyForCollectionPickups.length} ready` : undefined,
       badgeColor: 'bg-emerald-100 text-emerald-800',
       category: 'service',
       description: 'Weight scale, photos, hazards, and QR seal',
@@ -184,13 +232,31 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
       description: 'Find top downstream recyclers by price/km',
     },
     {
-      id: 'wallet_trust',
-      label: 'Wallet & Reputation',
-      icon: <Wallet className="w-4 h-4" />,
-      badge: '₹3,000',
-      badgeColor: 'bg-emerald-100 text-emerald-800',
+      id: 'trust',
+      label: 'Trust & Performance',
+      icon: <ShieldCheck className="w-4 h-4" />,
+      badge: currentUser.trustScore ?? 94,
+      badgeColor: 'bg-blue-100 text-blue-800',
       category: 'analysis',
-      description: 'Trust score, accuracy bonus, and payouts',
+      description: 'Reputation score & collection accuracy',
+    },
+    {
+      id: 'wallet',
+      label: 'Wallet & Cashback',
+      icon: <Wallet className="w-4 h-4" />,
+      badge: `₹${(currentUser.walletBalanceINR ?? 0).toLocaleString('en-IN')}`,
+      badgeColor: 'bg-emerald-100 text-emerald-800',
+      category: 'account',
+      description: 'Cashback balance & instant UPI/bank transfer',
+    },
+    {
+      id: 'profile',
+      label: 'Profile & Verification',
+      icon: <UserCog className="w-4 h-4" />,
+      badge: verificationBadge.label,
+      badgeColor: verificationBadge.color,
+      category: 'account',
+      description: 'Update details & Collector/Member ID verification',
     },
   ];
 
@@ -208,23 +274,43 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
           user={currentUser}
           subtitle="Offline-first digital chain of custody. Capture collections, log photos, record digital scale weights, and navigate to verified downstream buyers."
           customDetails={[
-            { label: 'Collector ID', value: 'COL-9021', icon: <Truck className="w-3.5 h-3.5 text-slate-400" /> },
-            { label: 'Operating Territory', value: 'Indiranagar & Koramangala, Bengaluru', icon: <MapPin className="w-3.5 h-3.5 text-slate-400" /> },
+            { label: 'Collector ID', value: currentUser.collectorId || 'Not Set', icon: <Truck className="w-3.5 h-3.5 text-slate-400" /> },
+            { label: 'Member ID', value: currentUser.memberId || 'Not Set', icon: <BadgeCheck className="w-3.5 h-3.5 text-slate-400" /> },
+            { label: 'Operating Territory', value: currentUser.operatingTerritory || 'Indiranagar & Koramangala, Bengaluru', icon: <MapPin className="w-3.5 h-3.5 text-slate-400" /> },
           ]}
           badges={[
             {
               label: 'ReLoop Trust Score',
-              value: '94 / 100',
+              value: `${currentUser.trustScore ?? 94} / 100`,
               subtext: '97% weight accuracy across 184 handovers',
               color: 'emerald',
               icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />,
             },
             {
               label: 'Available Wallet',
-              value: '₹3,000',
-              subtext: 'Includes ₹80 accuracy bonus',
+              value: `₹${(currentUser.walletBalanceINR ?? 0).toLocaleString('en-IN')}`,
+              subtext: 'Tap Wallet & Cashback to transfer',
               color: 'amber',
               icon: <Wallet className="w-4 h-4 text-amber-600" />,
+            },
+            {
+              label: 'ID Verification',
+              value: verificationBadge.label,
+              subtext:
+                verificationStatus === 'verified'
+                  ? 'Collector & Member ID confirmed'
+                  : verificationStatus === 'pending'
+                  ? 'Awaiting back-office review'
+                  : 'Complete verification in Profile',
+              color: verificationStatus === 'verified' ? 'emerald' : verificationStatus === 'pending' ? 'amber' : 'slate',
+              icon:
+                verificationStatus === 'verified' ? (
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                ) : verificationStatus === 'pending' ? (
+                  <Clock3 className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <ShieldAlert className="w-4 h-4 text-slate-500" />
+                ),
             },
             {
               label: 'Network Mode',
@@ -301,60 +387,117 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pickups.map((req, idx) => (
-              <div
-                key={`${req.id}-${idx}`}
-                className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                  req.status === 'pending'
-                    ? 'border-amber-300 bg-amber-50/20 hover:shadow-md'
-                    : 'border-slate-200 bg-slate-50/60'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-bold text-sm text-slate-900">{req.id}</span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                        req.status === 'pending'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      {req.status}
-                    </span>
+            {pickups.map((req, idx) => {
+              const isExpanded = expandedPickupId === req.id;
+              const isMine = !req.assignedCollectorId || req.assignedCollectorId === currentUser.id;
+              return (
+                <div
+                  key={`${req.id}-${idx}`}
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                    req.status === 'pending'
+                      ? 'border-amber-300 bg-amber-50/20 hover:shadow-md'
+                      : req.status === 'accepted'
+                      ? 'border-emerald-300 bg-emerald-50/20 hover:shadow-md'
+                      : 'border-slate-200 bg-slate-50/60'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono font-bold text-sm text-slate-900">{req.id}</span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                          req.status === 'pending'
+                            ? 'bg-amber-100 text-amber-800'
+                            : req.status === 'accepted'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {req.status}
+                      </span>
+                    </div>
+
+                    <div className="text-xs space-y-1 mb-3 text-slate-700">
+                      <div className="font-bold text-slate-900">{req.citizenName}</div>
+                      <div className="text-slate-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">{req.address}</span>
+                      </div>
+                      <div className="text-slate-600 pt-1 font-mono text-[11px]">
+                        {req.items.map((i) => `${i.count}x ${i.category}`).join(', ')}
+                      </div>
+                    </div>
+
+                    {/* Individual item segment review panel */}
+                    {(req.status === 'pending' || req.status === 'accepted') && isExpanded && (
+                      <div className="mb-3 p-2.5 bg-white border border-slate-200 rounded-xl space-y-1.5 animate-in fade-in">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mb-1">
+                          <ListChecks className="w-3 h-3" />
+                          <span>Item Segments</span>
+                        </div>
+                        {req.items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between text-[11px] px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-100"
+                          >
+                            <span className="font-semibold text-slate-800">{item.category}</span>
+                            <span className="text-slate-500">
+                              {item.count} unit{item.count > 1 ? 's' : ''}
+                              {item.estimatedWeightKg ? ` • ~${item.estimatedWeightKg} kg` : ''}
+                            </span>
+                          </div>
+                        ))}
+                        {req.items.some((i) => i.notes) && (
+                          <div className="text-[10px] text-slate-400 pt-1 italic">
+                            {req.items.filter((i) => i.notes).map((i) => `${i.category}: ${i.notes}`).join(' • ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="text-xs space-y-1 mb-3 text-slate-700">
-                    <div className="font-bold text-slate-900">{req.citizenName}</div>
-                    <div className="text-slate-500 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span className="truncate">{req.address}</span>
-                    </div>
-                    <div className="text-slate-600 pt-1 font-mono text-[11px]">
-                      {req.items.map((i) => `${i.count}x ${i.category}`).join(', ')}
-                    </div>
+                  <div className="pt-2 space-y-2">
+                    {req.status === 'pending' && isMine && (
+                      <>
+                        <button
+                          onClick={() => setExpandedPickupId(isExpanded ? null : req.id)}
+                          className="w-full py-2 bg-white border border-amber-200 hover:bg-amber-50 text-amber-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          <span>{isExpanded ? 'Hide' : 'Review'} Item Segments</span>
+                        </button>
+                        <button
+                          id={`accept-btn-${req.id}`}
+                          onClick={() => handleAcceptPickup(req)}
+                          className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Accept &amp; Request Pickup</span>
+                        </button>
+                      </>
+                    )}
+
+                    {req.status === 'accepted' && isMine && (
+                      <button
+                        id={`collect-btn-${req.id}`}
+                        onClick={() => handleStartCollect(req)}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        <Package className="w-3.5 h-3.5" />
+                        <span>Start Collection Workflow</span>
+                      </button>
+                    )}
+
+                    {!['pending', 'accepted'].includes(req.status) && (
+                      <div className="text-xs text-slate-500 italic flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Collected in Batch {req.batchId || 'CB-00071'}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="pt-2">
-                  {req.status === 'pending' ? (
-                    <button
-                      id={`collect-btn-${req.id}`}
-                      onClick={() => handleStartCollect(req)}
-                      className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <Package className="w-3.5 h-3.5" />
-                      <span>Start Collection Workflow</span>
-                    </button>
-                  ) : (
-                    <div className="text-xs text-slate-500 italic flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Collected in Batch {req.batchId || 'CB-00071'}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -510,7 +653,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
                 No active pickup selected for recording
               </div>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Go to the Collection Queue tab and click "Start Collection Workflow" on any pending request.
+                Go to the Pickup Requests tab, accept a request, then click "Start Collection Workflow".
               </p>
               <button
                 onClick={() => setActiveTab('pickups')}
@@ -599,96 +742,65 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
         </div>
       )}
 
-      {/* VIEW 4: WALLET & REPUTATION ANALYTICS */}
-      {activeTab === 'wallet_trust' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-200">
-          {/* Trust Score Card */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Reputation System
-                </span>
-                <h3 className="text-xl font-bold text-slate-900 font-display">
-                  Collector Trust Score
-                </h3>
-              </div>
-              <div className="text-right">
-                <span className="text-3xl font-black text-emerald-600 font-display">94</span>
-                <span className="text-sm font-bold text-slate-400"> / 100</span>
-              </div>
+      {/* VIEW 4: TRUST & REPUTATION ANALYTICS */}
+      {activeTab === 'trust' && (
+        <div className="max-w-2xl bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Reputation System
+              </span>
+              <h3 className="text-xl font-bold text-slate-900 font-display">
+                Collector Trust Score
+              </h3>
             </div>
-
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="text-slate-500">Verified Collections</div>
-                <div className="text-xl font-extrabold text-slate-800 mt-0.5">184</div>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="text-slate-500">Weight Accuracy</div>
-                <div className="text-xl font-extrabold text-emerald-600 mt-0.5">97%</div>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="text-slate-500">Successful Handovers</div>
-                <div className="text-xl font-extrabold text-slate-800 mt-0.5">176</div>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="text-slate-500">Risk Flags</div>
-                <div className="text-xl font-extrabold text-amber-600 mt-0.5">2 (Cleared)</div>
-              </div>
+            <div className="text-right">
+              <span className="text-3xl font-black text-emerald-600 font-display">{currentUser.trustScore ?? 94}</span>
+              <span className="text-sm font-bold text-slate-400"> / 100</span>
             </div>
-
-            <p className="text-[11px] text-slate-500">
-              High Trust Score unlocks priority downstream aggregator pricing and higher matchmaking density for citizen pickups.
-            </p>
           </div>
 
-          {/* Wallet Card */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Economic Incentives
-                </span>
-                <h3 className="text-xl font-bold text-slate-900 font-display">
-                  My ReLoop Wallet
-                </h3>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
-                  ₹3,000
-                </div>
-                <div className="text-[11px] font-bold text-emerald-600">Available to Withdraw</div>
-              </div>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-slate-500">Verified Collections</div>
+              <div className="text-xl font-extrabold text-slate-800 mt-0.5">184</div>
             </div>
-
-            <div className="space-y-2 text-xs text-slate-700">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Material Sales Value:</span>
-                <span className="font-semibold text-slate-800">₹2,450</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Collection Handover Rewards:</span>
-                <span className="font-semibold text-emerald-600">+ ₹320</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Accuracy Bonus (Scale Weight match):</span>
-                <span className="font-semibold text-emerald-600">+ ₹80</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Downstream Hub Bonus:</span>
-                <span className="font-semibold text-emerald-600">+ ₹150</span>
-              </div>
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-slate-500">Weight Accuracy</div>
+              <div className="text-xl font-extrabold text-emerald-600 mt-0.5">97%</div>
             </div>
-
-            <button
-              onClick={() => alert('Simulated instant transfer of ₹3,000 sent to Rajesh Kumar UPI Account (rajesh@upi)!')}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-xs cursor-pointer transition-colors"
-            >
-              Transfer ₹3,000 to Bank / UPI
-            </button>
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-slate-500">Successful Handovers</div>
+              <div className="text-xl font-extrabold text-slate-800 mt-0.5">176</div>
+            </div>
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-slate-500">Risk Flags</div>
+              <div className="text-xl font-extrabold text-amber-600 mt-0.5">2 (Cleared)</div>
+            </div>
           </div>
+
+          <p className="text-[11px] text-slate-500">
+            High Trust Score unlocks priority downstream aggregator pricing and higher matchmaking density for citizen pickups.
+          </p>
         </div>
+      )}
+
+      {/* VIEW 5: WALLET & CASHBACK */}
+      {activeTab === 'wallet' && (
+        <CollectorWallet
+          currentUser={currentUser}
+          onProfileUpdated={(updatedUser) => setCurrentUser(updatedUser)}
+          onNavigateTab={(tab) => setActiveTab(tab as CollectorTab)}
+        />
+      )}
+
+      {/* VIEW 6: PROFILE & VERIFICATION */}
+      {activeTab === 'profile' && (
+        <CollectorProfileSettings
+          currentUser={currentUser}
+          onProfileUpdated={(updatedUser) => setCurrentUser(updatedUser)}
+          onNavigateTab={(tab) => setActiveTab(tab as CollectorTab)}
+        />
       )}
       </div>
     </DashboardSidebarLayout>

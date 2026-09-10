@@ -38,6 +38,27 @@ export const DEFAULT_ACCOUNTS: User[] = [
     trustScore: 94,
     walletBalanceINR: 3000,
     createdAt: '2026-02-15T08:30:00Z',
+    collectorId: 'COL-9021',
+    memberId: 'RELOOP-MEM-4471',
+    verificationStatus: 'verified',
+    idProofType: 'Aadhaar',
+    idProofNumber: 'XXXX-XXXX-8823',
+    operatingTerritory: 'Indiranagar & Koramangala, Bengaluru',
+    address: '5th Main Road, Indiranagar',
+    city: 'Bengaluru',
+    pincode: '560038',
+    upiId: 'rajesh@upi',
+    bankAccount: {
+      accountNumber: '30987654321098',
+      ifscCode: 'SBIN0001234',
+      bankName: 'State Bank of India',
+      accountHolderName: 'Rajesh Kumar',
+    },
+    notifications: {
+      whatsapp: true,
+      sms: true,
+      email: false,
+    },
   },
   {
     id: 'usr_recycler_01',
@@ -161,6 +182,9 @@ export function registerUser(name: string, email: string, role: UserRole, phone?
     walletBalanceINR: role === 'collector' ? 0 : undefined,
     rewardPoints: role === 'user' ? 25 : undefined,
     createdAt: new Date().toISOString(),
+    collectorId: role === 'collector' ? `COL-${Math.floor(1000 + Math.random() * 8999)}` : undefined,
+    memberId: role === 'collector' ? `RELOOP-MEM-${Math.floor(1000 + Math.random() * 8999)}` : undefined,
+    verificationStatus: role === 'collector' ? 'unverified' : undefined,
   };
 
   try {

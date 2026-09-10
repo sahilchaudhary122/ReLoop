@@ -19,28 +19,36 @@ import {
   Wallet,
   Calendar,
   HelpCircle,
-  Phone
+  Phone,
+  UserCog
 } from 'lucide-react';
 import { User, PickupRequest, PickupItem } from '../../types';
 import { getStoredPickups, savePickup } from '../../services/mockData';
 import { RoleProfileCard } from '../common/RoleProfileCard';
 import { DashboardSidebarLayout, NavSectionItem } from '../common/DashboardSidebarLayout';
+import { CitizenProfileSettings } from './citizen/CitizenProfileSettings';
+import { CitizenRewardCenter } from './citizen/CitizenRewardCenter';
 
 interface CitizenDashboardProps {
   currentUser: User;
   onOpenWhatsApp: () => void;
 }
 
-type CitizenTab = 'requests' | 'schedule' | 'rewards' | 'assistant';
+type CitizenTab = 'requests' | 'schedule' | 'rewards' | 'assistant' | 'profile';
 
 export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
-  currentUser,
+  currentUser: initialCurrentUser,
   onOpenWhatsApp,
 }) => {
+  const [currentUser, setCurrentUser] = useState<User>(initialCurrentUser);
   const [pickups, setPickups] = useState<PickupRequest[]>(getStoredPickups());
   const [activeTab, setActiveTab] = useState<CitizenTab>('requests');
+
+  // Keep local user state in sync if the parent-level session user changes
+  React.useEffect(() => {
+    setCurrentUser(initialCurrentUser);
+  }, [initialCurrentUser]);
   const [selectedReceipt, setSelectedReceipt] = useState<PickupRequest | null>(null);
-  const [redeemSuccess, setRedeemSuccess] = useState(false);
   const [showNewPickupSuccess, setShowNewPickupSuccess] = useState(false);
 
   // New pickup form state
@@ -104,11 +112,6 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
     setBatteryCount(0);
   };
 
-  const handleSimulatedRedeem = () => {
-    setRedeemSuccess(true);
-    setTimeout(() => setRedeemSuccess(false), 4000);
-  };
-
   const citizenNavItems: NavSectionItem[] = [
     {
       id: 'requests',
@@ -137,12 +140,19 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
     },
     {
       id: 'rewards',
-      label: 'Impact Analytics & Rewards',
-      icon: <Gift className="w-4 h-4" />,
-      badge: '120 pts',
+      label: 'Credit / Reward Score',
+      icon: <Award className="w-4 h-4" />,
+      badge: `${currentUser.rewardPoints ?? 120} pts`,
       badgeColor: 'bg-teal-100 text-teal-800',
       category: 'analysis',
-      description: 'CO2e avoided, diverted kg, and UPI payouts',
+      description: 'Score history by product & convert to cashback',
+    },
+    {
+      id: 'profile',
+      label: 'Profile & Account',
+      icon: <UserCog className="w-4 h-4" />,
+      category: 'account',
+      description: 'Update personal, address & payout details',
     },
   ];
 
@@ -545,95 +555,20 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
 
       {/* VIEW 3: GREEN REWARDS & IMPACT */}
       {activeTab === 'rewards' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Wallet & UPI Payout Card */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Your Verified Points
-                  </span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">
-                    Citizen Green Wallet
-                  </h3>
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-black text-emerald-600 font-display">120</div>
-                  <div className="text-xs text-slate-500">Points = ₹120 INR</div>
-                </div>
-              </div>
+        <CitizenRewardCenter
+          currentUser={currentUser}
+          onPointsUpdated={(newPoints) => setCurrentUser((prev) => ({ ...prev, rewardPoints: newPoints }))}
+          onNavigateTab={(tab) => setActiveTab(tab as CitizenTab)}
+        />
+      )}
 
-              <div className="space-y-2.5 text-xs text-slate-700">
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">Linked UPI VPA:</span>
-                  <span className="font-mono font-bold text-slate-900">{currentUser.email.split('@')[0]}@okhdfcbank</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">Points Earned This Month:</span>
-                  <span className="font-bold text-emerald-700">+40 pts</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">Payout Minimum:</span>
-                  <span className="font-semibold text-slate-800">₹50 (Requirement Met)</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleSimulatedRedeem}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
-              >
-                <Wallet className="w-4 h-4" />
-                <span>Simulate Instant UPI Payout (₹120)</span>
-              </button>
-
-              {redeemSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-900 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Payout of ₹120 successfully dispatched to {currentUser.email.split('@')[0]}@okhdfcbank via UPI fast settlement!</span>
-                </div>
-              )}
-            </div>
-
-            {/* Environmental Impact Breakdown */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-              <div className="pb-4 border-b border-slate-100">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Ecological Metrics
-                </span>
-                <h3 className="text-xl font-bold text-slate-900 font-display">
-                  Your Net Environmental Savings
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl">
-                  <div className="text-emerald-800 text-[11px] font-semibold">CO2e Emissions Prevented</div>
-                  <div className="text-2xl font-black text-emerald-700 mt-1">18.6 kg</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Equivalent to planting 1 tree</div>
-                </div>
-
-                <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl">
-                  <div className="text-blue-800 text-[11px] font-semibold">Toxic Lead & Mercury Diverted</div>
-                  <div className="text-2xl font-black text-blue-700 mt-1">420 g</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Prevented groundwater contamination</div>
-                </div>
-
-                <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-xl">
-                  <div className="text-purple-800 text-[11px] font-semibold">Precious Metals Saved</div>
-                  <div className="text-2xl font-black text-purple-700 mt-1">2.4 g</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Gold, silver, and copper recovered</div>
-                </div>
-
-                <div className="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl">
-                  <div className="text-amber-800 text-[11px] font-semibold">Refurbished Second Life</div>
-                  <div className="text-2xl font-black text-amber-700 mt-1">1 Laptop</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Diverted to educational use</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* VIEW 5: PROFILE & ACCOUNT SETTINGS */}
+      {activeTab === 'profile' && (
+        <CitizenProfileSettings
+          currentUser={currentUser}
+          onProfileUpdated={(updatedUser) => setCurrentUser(updatedUser)}
+          onNavigateTab={(tab) => setActiveTab(tab as CitizenTab)}
+        />
       )}
 
       {/* VIEW 4: WHATSAPP BOT & ASSISTANT */}

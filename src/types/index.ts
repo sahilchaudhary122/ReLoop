@@ -26,6 +26,13 @@ export interface User {
     sms: boolean;
     email: boolean;
   };
+  // Collector-specific identity & verification
+  collectorId?: string;
+  memberId?: string;
+  verificationStatus?: 'unverified' | 'pending' | 'verified';
+  idProofType?: 'Aadhaar' | 'Voter ID' | 'Driving License' | 'PAN Card';
+  idProofNumber?: string;
+  operatingTerritory?: string;
 }
 
 export interface RewardCreditTransaction {
@@ -42,6 +49,7 @@ export interface RewardCreditTransaction {
   paymentMethod?: string;
   referenceNumber?: string;
   notes?: string;
+  actorId?: string; // owning user id (citizen or collector) for wallet/reward filtering
 }
 
 export interface JWTPayload {
