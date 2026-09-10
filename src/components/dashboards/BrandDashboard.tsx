@@ -162,9 +162,9 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
         </div>
 
         <div className="space-y-3">
-          {risks.map((risk) => (
+          {risks.map((risk, idx) => (
             <div
-              key={risk.id}
+              key={`${risk.id}-${idx}`}
               className={`p-4 rounded-xl border transition-all ${
                 risk.status === 'flagged'
                   ? 'bg-amber-50/60 border-amber-300'
@@ -248,9 +248,9 @@ export const BrandDashboard: React.FC<BrandDashboardProps> = ({ currentUser }) =
         </div>
 
         <div className="space-y-3">
-          {events.map((evt) => (
+          {events.map((evt, idx) => (
             <div
-              key={evt.id}
+              key={`${evt.id}-${idx}`}
               className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
             >
               <div className="space-y-1">

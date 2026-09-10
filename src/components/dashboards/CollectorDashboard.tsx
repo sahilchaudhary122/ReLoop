@@ -337,9 +337,9 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
 
         {/* Requests Table/List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pickups.map((req) => (
+          {pickups.map((req, idx) => (
             <div
-              key={req.id}
+              key={`${req.id}-${idx}`}
               className={`p-4 rounded-xl border transition-all ${
                 req.status === 'pending'
                   ? 'border-emerald-300 bg-emerald-50/20 hover:shadow-md'

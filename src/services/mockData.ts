@@ -322,10 +322,35 @@ export function saveBatch(batch: CollectionBatch) {
   window.dispatchEvent(new Event('reloop_data_changed'));
 }
 
+let eventCounter = 0;
+
 export function getStoredEvents(): EventLedgerItem[] {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.EVENTS);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const parsed: EventLedgerItem[] = JSON.parse(data);
+      const seenIds = new Set<string>();
+      let hasDuplicates = false;
+      const sanitized = parsed.map((item, index) => {
+        if (!item.id || seenIds.has(item.id)) {
+          hasDuplicates = true;
+          const uniqueId = item.id ? `${item.id}_${index}_${Math.random().toString(36).substring(2, 6)}` : `evt_${Date.now()}_${index}_${Math.random().toString(36).substring(2, 6)}`;
+          seenIds.add(uniqueId);
+          return { ...item, id: uniqueId };
+        }
+        seenIds.add(item.id);
+        return item;
+      });
+
+      if (hasDuplicates) {
+        try {
+          localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(sanitized));
+        } catch {
+          // ignore storage quota errors
+        }
+      }
+      return sanitized;
+    }
   } catch (e) {
     console.error(e);
   }
@@ -334,9 +359,11 @@ export function getStoredEvents(): EventLedgerItem[] {
 
 export function addEvent(event: Omit<EventLedgerItem, 'id'>): EventLedgerItem {
   const all = getStoredEvents();
+  eventCounter += 1;
+  const uniqueId = `evt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}_${eventCounter}`;
   const newEvent: EventLedgerItem = {
     ...event,
-    id: `evt_${Date.now()}`,
+    id: uniqueId,
   };
   all.unshift(newEvent);
   localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(all));

@@ -51,11 +51,12 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
   const handleCreatePickup = (e: React.FormEvent) => {
     e.preventDefault();
     const items: PickupItem[] = [];
-    if (mobileCount > 0) items.push({ id: `i_${Date.now()}_1`, category: 'Mobile', count: Number(mobileCount), estimatedWeightKg: mobileCount * 0.2 });
-    if (laptopCount > 0) items.push({ id: `i_${Date.now()}_2`, category: 'Laptop', count: Number(laptopCount), estimatedWeightKg: laptopCount * 2.2 });
-    if (printerCount > 0) items.push({ id: `i_${Date.now()}_3`, category: 'Printer', count: Number(printerCount), estimatedWeightKg: printerCount * 7.5 });
-    if (chargerCount > 0) items.push({ id: `i_${Date.now()}_4`, category: 'Charger / Cable', count: Number(chargerCount), estimatedWeightKg: chargerCount * 0.3 });
-    if (batteryCount > 0) items.push({ id: `i_${Date.now()}_5`, category: 'Battery', count: Number(batteryCount), estimatedWeightKg: batteryCount * 0.4 });
+    const randSuffix = Math.random().toString(36).substring(2, 6);
+    if (mobileCount > 0) items.push({ id: `i_${Date.now()}_1_${randSuffix}`, category: 'Mobile', count: Number(mobileCount), estimatedWeightKg: mobileCount * 0.2 });
+    if (laptopCount > 0) items.push({ id: `i_${Date.now()}_2_${randSuffix}`, category: 'Laptop', count: Number(laptopCount), estimatedWeightKg: laptopCount * 2.2 });
+    if (printerCount > 0) items.push({ id: `i_${Date.now()}_3_${randSuffix}`, category: 'Printer', count: Number(printerCount), estimatedWeightKg: printerCount * 7.5 });
+    if (chargerCount > 0) items.push({ id: `i_${Date.now()}_4_${randSuffix}`, category: 'Charger / Cable', count: Number(chargerCount), estimatedWeightKg: chargerCount * 0.3 });
+    if (batteryCount > 0) items.push({ id: `i_${Date.now()}_5_${randSuffix}`, category: 'Battery', count: Number(batteryCount), estimatedWeightKg: batteryCount * 0.4 });
 
     if (items.length === 0) {
       alert('Please add at least one e-waste item');
@@ -176,7 +177,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
 
       {/* Pickup Requests Cards with Visual Journey */}
       <div className="space-y-6">
-        {myPickups.map((req) => {
+        {myPickups.map((req, idx) => {
           // Determine stage index
           const stages = [
             { key: 'pending', label: 'Pickup Requested', desc: 'Assigned to trusted collector' },
@@ -194,7 +195,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
 
           return (
             <div
-              key={req.id}
+              key={`${req.id}-${idx}`}
               className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-slate-300"
             >
               {/* Card Header */}

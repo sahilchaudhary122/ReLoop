@@ -219,9 +219,9 @@ export const RecyclerDashboard: React.FC<RecyclerDashboardProps> = ({ currentUse
                 Batches in Receiving Queue:
               </span>
               <div className="space-y-2">
-                {batches.map((batch) => (
+                {batches.map((batch, idx) => (
                   <button
-                    key={batch.id}
+                    key={`${batch.id}-${idx}`}
                     onClick={() => setSelectedBatch(batch)}
                     className={`w-full text-left p-3 rounded-xl border transition-all ${
                       selectedBatch?.id === batch.id

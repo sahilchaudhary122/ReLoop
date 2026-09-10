@@ -165,7 +165,7 @@ export const WhatsAppMobileBot: React.FC<WhatsAppMobileBotProps> = ({
     if (!isMuted) playPopSound(true);
 
     const userMsg: Message = {
-      id: `user-${Date.now()}`,
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       sender: 'user',
       type: 'text',
       text: text,
@@ -216,7 +216,7 @@ export const WhatsAppMobileBot: React.FC<WhatsAppMobileBotProps> = ({
         city: 'Bengaluru',
         items: [
           {
-            id: `item-${Date.now()}`,
+            id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
             category: pendingBooking.items.toLowerCase().includes('laptop') ? 'Laptop' : 'Mobile',
             count: 1,
             estimatedWeightKg: 1.5,
@@ -353,7 +353,7 @@ export const WhatsAppMobileBot: React.FC<WhatsAppMobileBotProps> = ({
       setMessages((prev) => [
         ...prev,
         {
-          id: `user-img-${Date.now()}`,
+          id: `user-img-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           sender: 'user',
           type: 'image',
           imageUrl: dataUrl,
@@ -480,9 +480,9 @@ export const WhatsAppMobileBot: React.FC<WhatsAppMobileBotProps> = ({
           </span>
         </div>
 
-        {messages.map((m) => (
+        {messages.map((m, idx) => (
           <div
-            key={m.id}
+            key={`${m.id}-${idx}`}
             className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
           >
             <div
