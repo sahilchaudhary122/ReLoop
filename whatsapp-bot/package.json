@@ -1,0 +1,20 @@
+{
+  "name": "whatsapp-ai-bot",
+  "version": "1.0.0",
+  "description": "Real WhatsApp chatbot using whatsapp-web.js + AI (Gemini or Claude), linked via QR scan",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "whatsapp-web.js": "^1.26.0",
+    "qrcode-terminal": "^0.12.0",
+    "dotenv": "^16.4.5",
+    "@google/generative-ai": "^0.21.0",
+    "@anthropic-ai/sdk": "^0.30.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
