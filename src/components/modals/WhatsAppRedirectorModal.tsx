@@ -22,7 +22,7 @@ export const WhatsAppRedirectorModal: React.FC<WhatsAppRedirectorModalProps> = (
   if (!isOpen) return null;
 
   const [qrMode, setQrMode] = useState<'web_bot' | 'real_whatsapp'>('web_bot');
-  const [customPhone, setCustomPhone] = useState('919876543210');
+  const [customPhone, setCustomPhone] = useState('917904041960');
   const [copied, setCopied] = useState(false);
 
   // Live scannable URL for mobile phones

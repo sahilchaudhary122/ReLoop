@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, UserRole } from './types';
 import { getCurrentSession, getRoleDashboardPath } from './services/auth';
 import { Navbar } from './components/layout/Navbar';
+import { Footer } from './components/layout/Footer';
 import { HomePage } from './components/home/HomePage';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
@@ -169,6 +170,12 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1">{renderCurrentView()}</main>
+
+      {/* Global Footer with Copyright & Regulatory Disclaimers */}
+      <Footer
+        onNavigate={navigate}
+        onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
+      />
 
       {/* WhatsApp Chatbot Redirector & Simulator Modal */}
       <WhatsAppRedirectorModal
