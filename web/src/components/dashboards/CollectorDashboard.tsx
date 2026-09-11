@@ -24,7 +24,9 @@ import {
   ArrowRight,
   CheckCircle2,
   Sliders,
-  DollarSign
+  DollarSign,
+  Upload,
+  X
 } from 'lucide-react';
 import { User, PickupRequest, CollectionBatch, HazardType } from '../../types';
 import {
@@ -57,10 +59,42 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
   const [activePickup, setActivePickup] = useState<PickupRequest | null>(null);
   const [weightKg, setWeightKg] = useState<string>('12.4');
   const [hazardStatus, setHazardStatus] = useState<HazardType>('No Hazard');
-  const [photoUrl, setPhotoUrl] = useState<string>(
-    'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=600&q=80'
-  );
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [photoError, setPhotoError] = useState<string>('');
   const [generatedBatch, setGeneratedBatch] = useState<CollectionBatch | null>(null);
+
+  const MAX_PHOTOS = 4;
+
+  // Read one or more selected/captured image files and store them as data URLs
+  // so they persist together with the rest of the batch record.
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    const countToProcess = Math.min(files.length, remainingSlots);
+
+    for (let i = 0; i < countToProcess; i++) {
+      const file: File = files[i];
+      if (!file.type.startsWith('image/')) continue;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = ev.target?.result;
+        if (typeof result === 'string') {
+          setPhotos((prev) => [...prev, result]);
+          setPhotoError('');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Reset the input so selecting the same file again re-triggers onChange
+    e.target.value = '';
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // Voice input simulation
   const [isListening, setIsListening] = useState(false);
@@ -94,12 +128,19 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
   const handleStartCollect = (pickup: PickupRequest) => {
     setActivePickup(pickup);
     setWeightKg('12.4');
+    setPhotos([]);
+    setPhotoError('');
     setActiveTab('recorder');
   };
 
   const handleCollectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activePickup) return;
+
+    if (photos.length === 0) {
+      setPhotoError('Please upload at least one photo of the collected item(s) before sealing the batch.');
+      return;
+    }
 
     const newBatchId = `CB-000${Math.floor(73 + Math.random() * 20)}`;
     const weightNum = parseFloat(weightKg) || 12.4;
@@ -111,7 +152,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
       collectorName: currentUser.name,
       items: activePickup.items,
       declaredWeightKg: weightNum,
-      photos: [photoUrl],
+      photos,
       gps: {
         lat: 12.9352,
         lng: 77.6245,
@@ -153,6 +194,8 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
     setBatches(getStoredBatches());
     setPickups(getStoredPickups());
     setActivePickup(null);
+    setPhotos([]);
+    setPhotoError('');
   };
 
   const pendingPickups = pickups.filter((p) => p.status === 'pending');
@@ -442,23 +485,58 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({ currentU
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center gap-1">
                   <Camera className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Photo Evidence (Tamper-Resistant Perceptual Hash)</span>
+                  <span>Photo Evidence (Tamper-Resistant Proof) <span className="text-rose-500">*</span></span>
                 </label>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={photoUrl}
-                    alt="E-waste evidence"
-                    className="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-2xs"
-                  />
-                  <div className="space-y-1">
-                    <span className="text-[11px] text-slate-500 block">
-                      Camera snapped at pickup coordinate:
-                    </span>
-                    <span className="font-mono text-[10px] bg-slate-100 px-2 py-1 rounded block text-slate-700">
-                      GPS: 12.9352° N, 77.6245° E (Bengaluru)
-                    </span>
-                  </div>
+                <p className="text-[11px] text-slate-500 mb-2">
+                  Take or upload a photo of the collected item(s). It's saved with this batch record.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {photos.map((photo, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={photo}
+                        alt={`E-waste evidence ${idx + 1}`}
+                        className="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(idx)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow cursor-pointer"
+                        aria-label="Remove photo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {photos.length < MAX_PHOTOS && (
+                    <label
+                      htmlFor="photo-upload-input"
+                      className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 hover:border-amber-500 hover:bg-amber-50/40 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors text-slate-400 hover:text-amber-600"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span className="text-[9px] font-bold">Upload</span>
+                      <input
+                        id="photo-upload-input"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        multiple
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
+
+                {photoError && (
+                  <p className="text-[11px] text-rose-600 font-semibold mt-2">{photoError}</p>
+                )}
+
+                <span className="font-mono text-[10px] bg-slate-100 px-2 py-1 rounded inline-block mt-2 text-slate-700">
+                  GPS: 12.9352° N, 77.6245° E (Bengaluru)
+                </span>
               </div>
 
               <div>
