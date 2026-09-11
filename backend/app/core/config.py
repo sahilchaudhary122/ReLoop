@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     VISION_ACCEPT_THRESHOLD: float = 0.75
     VISION_REJECT_THRESHOLD: float = 0.75
     VISION_TIMEOUT_SECONDS: int = 20
+
+    # Voice Assistance Configuration
+    VOICE_ASSISTANT_ENABLED: bool = True
+    VOICE_PROVIDER: str = "demo"  # "demo", "local", "gemini"
+    GEMINI_AUDIO_MODEL: str = "gemini-1.5-flash"
+    VOICE_CONFIDENCE_THRESHOLD: float = 0.70
+    VOICE_MAX_AUDIO_BYTES: int = 10 * 1024 * 1024  # 10 MB limit
     
     class Config:
         # Build path relative to the file location to handle different working directories

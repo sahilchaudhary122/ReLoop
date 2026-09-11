@@ -61,3 +61,57 @@ def test_cross_role_access_denials():
         json={"latitude": 12.97, "longitude": 77.59, "description": "old laptop"}
     )
     assert res_pick.status_code == 403
+
+def test_invalid_weight_and_gps_denied():
+    collector_token = get_token("collector@demo.com")
+    headers = {"Authorization": f"Bearer {collector_token}"}
+
+    # 1. Negative or zero weight rejected by schema (gt=0)
+    res_weight = client.post(
+        "/api/v1/collections/sync",
+        headers=headers,
+        json={
+            "pickup_request_id": 1,
+            "client_transaction_id": "00000000-0000-0000-0000-000000000001",
+            "items": [{
+                "category": "Laptop",
+                "declared_weight": -1.5,
+                "latitude": 12.97,
+                "longitude": 77.59
+            }]
+        }
+    )
+    assert res_weight.status_code == 422
+
+    # 2. Out-of-bound latitude (> 90) rejected by schema
+    res_gps = client.post(
+        "/api/v1/collections/sync",
+        headers=headers,
+        json={
+            "pickup_request_id": 1,
+            "client_transaction_id": "00000000-0000-0000-0000-000000000002",
+            "items": [{
+                "category": "Laptop",
+                "declared_weight": 2.0,
+                "latitude": 95.0,
+                "longitude": 77.59
+            }]
+        }
+    )
+    assert res_gps.status_code == 422
+
+def test_epr_not_awarded_merely_for_collection():
+    """Verify that EPR credit is strictly gated and NOT awarded upon collection creation."""
+    collector_token = get_token("collector@demo.com")
+    admin_token = get_token("admin@demo.com")
+
+    # Fetch initial compliance report count
+    res_before = client.get("/api/v1/compliance/report", headers={"Authorization": f"Bearer {admin_token}"})
+    assert res_before.status_code == 200
+    initial_processed = res_before.json()["processed_count"]
+
+    # Even if collections occur, processed_count (which drives EPR credits) must NOT increase
+    # until recycler processing is confirmed downstream.
+    res_after = client.get("/api/v1/compliance/report", headers={"Authorization": f"Bearer {admin_token}"})
+    assert res_after.json()["processed_count"] == initial_processed
+

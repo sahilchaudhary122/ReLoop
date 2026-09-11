@@ -13,6 +13,7 @@ from app.api.endpoints.risk import router as risk_router
 from app.api.endpoints.vision import router as vision_router
 from app.api.endpoints.telegram import router as telegram_router
 from app.api.endpoints.notifications import router as notifications_router
+from app.api.endpoints.voice import router as voice_router
 
 app = FastAPI(title="ReLoop Backend")
 
@@ -30,6 +31,7 @@ app.include_router(compliance_router, prefix="/api/v1/compliance", tags=["compli
 app.include_router(citizen_router, prefix="/api/v1/citizens", tags=["citizens"])
 app.include_router(risk_router, prefix="/api/v1/risk", tags=["risk"])
 app.include_router(vision_router, prefix="/api/v1/vision", tags=["vision"])
+app.include_router(voice_router, prefix="/api/v1/voice", tags=["voice"])
 
 @app.on_event("startup")
 async def startup_event():
