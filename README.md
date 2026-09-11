@@ -65,4 +65,4 @@ Flutter Collector App + SQLite + Offline UX
 
 ### Member 3
 Next.js Web + Aggregator + Recycler + Brand/PRO + Admin
->>>>>>> 2c22076014d9e8cee8aef7d47cabf0bf674a9cab
+
